@@ -1,0 +1,33 @@
+{
+  "name": "telegram-bot",
+  "version": "1.0.0",
+  "description": "Helps you with HL7 notifications",
+  "main": "app.js",
+  "scripts": {
+    "server": "npx nodemon server.js",
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cvicens/camel-k-health-assistant.git"
+  },
+  "keywords": [
+    "bot"
+  ],
+  "author": "Carlos Vicens",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cvicens/camel-k-health-assistant/issues"
+  },
+  "homepage": "https://github.com/cvicens/camel-k-health-assistant#readme",
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "nodemon": "^1.18.11"
+  },
+  "dependencies": {
+    "express": "^4.16.4",
+    "node-telegram-bot-api": "^0.30.0"
+  }
+}
