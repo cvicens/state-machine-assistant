@@ -4,8 +4,8 @@
   "description": "Helps you with HL7 notifications",
   "main": "app.js",
   "scripts": {
-    "server": "npx nodemon server.js",
-    "start": "node server.js",
+    "server": "npx nodemon app.js",
+    "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint"
   },

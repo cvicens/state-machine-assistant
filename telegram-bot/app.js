@@ -37,8 +37,8 @@ app.post('/new-message/:chatId', function(req, res, next) {
 });
 
 // Start Express Server
-const port = process.env.PORT || process.env.WEB_UI_CUSTOM_PORT || 8080;
-const host = process.env.IP || process.env.WEB_UI_CUSTOM_HOST || '0.0.0.0';
+const port = process.env.PORT || process.env.TELEGRAM_BOT_CUSTOM_PORT || 8080;
+const host = process.env.IP || process.env.TELEGRAM_BOT_CUSTOM_HOST || '0.0.0.0';
 app.listen(port, host, () => {
   console.log(`Telegram Bot started at: ${new Date()} on port: ${port}`);
 });
