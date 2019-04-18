@@ -1,4 +1,4 @@
-const TOKEN = process.env.TELEGRAM_TOKEN || '829504574:AAHawW3_h5v56SWsyflg90ArvJAT157Exp8';
+const TOKEN = process.env.TELEGRAM_TOKEN;
 const DEV_MODE = process.env.DEV_MODE || true;
 
 const url = process.env.ROUTE_URL;
