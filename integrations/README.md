@@ -1,0 +1,1 @@
+kamel run -d camel-gson -d mvn:ca.uhn.hapi:hapi-base:2.3 -d mvn:ca.uhn.hapi:hapi-structures-v24:2.3 -d camel-hl7 -d camel-fhir -d mvn:ca.uhn.hapi.fhir:hapi-fhir-base:3.7.0 -d mvn:ca.uhn.hapi.fhir:hapi-fhir-structures-dstu3:3.7.0 -p telegram-bot.host=telegram-bot -p telegram-bot.port=8080 -p logging.level.org.apache.camel=INFO ./HisToBot.java --dev
