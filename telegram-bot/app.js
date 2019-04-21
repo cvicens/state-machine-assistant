@@ -28,9 +28,9 @@ app.post(`/bot${TOKEN}`, (req, res) => {
 
 // Relay message
 // eslint-disable-next-line no-unused-vars
-app.post('/new-message/:chatId', function(req, res, next) { // TODO delete chatId which should be inferred
+app.post('/new-message', function(req, res, next) {
   const { message, patientId, personalId } = req.body;
-  const chatId = req.params.chatId; // TODO look personalId in DB to get chatId or die
+  const chatId = personalId; // TODO look personalId in DB to get chatId or die
   console.log('new-message for', message, personalId, 'with external chatId', chatId, 'and patientId', patientId);
   if (chatId) {
     bot.sendMessage(chatId, message);
