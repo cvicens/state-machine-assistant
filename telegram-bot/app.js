@@ -28,12 +28,17 @@ app.post(`/bot${TOKEN}`, (req, res) => {
 
 // Relay message
 // eslint-disable-next-line no-unused-vars
-app.post('/new-message/:chatId', function(req, res, next) {
-  const { message } = req.body;
-  const fromId = req.params.chatId;
+app.post('/new-message/:chatId', function(req, res, next) { // TODO delete chatId which should be inferred
+  const { message, patientId } = req.body;
+  const chatId = req.params.chatId; // TODO look patientId in DB to get chatId or die
+  console.log('new-message for ', message, patientId, ' with external chatId', chatId);
+  if (chatId) {
+    bot.sendMessage(chatId, message);
+    res.end('ok');
+    return;
+  }
 
-  bot.sendMessage(fromId, message);
-  res.end('ok');
+  res.status(404).end('no chatId could be found for ', patientId);
 });
 
 // Start Express Server
