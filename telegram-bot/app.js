@@ -56,7 +56,7 @@ app.listen(port, host, () => {
 // eslint-disable-next-line no-unused-vars
 bot.onText(/\/help/, function(msg, match) {
   const fromId = msg.from.id;
-  bot.sendMessage(fromId, 'I can help you in getting the sentiments of any text you send to me.');
+  bot.sendMessage(fromId, 'I can help you in getting the updates related to your health care.');
 });
 
 // eslint-disable-next-line no-unused-vars
@@ -68,8 +68,8 @@ bot.onText(/\/myid/, function(msg, match) {
 // eslint-disable-next-line no-unused-vars
 bot.onText(/\/start/, function(msg, match) {
   const fromId = msg.from.id;
-  bot.sendMessage(fromId, 'They call me MadansFirstTelegramBot. ' +
-    'I can help you in getting the sentiments of any text you send to me.'+
-    'To help you i just have few commands.\n/help\n/start\n/sentiments');
+  bot.sendMessage(fromId, 'They call me HIS TelegramBot. ' +
+    'I can help you in getting the updates related to your health care.'+
+    'To help you I have few commands.\n/help\n/start\n/sentiments');
 });
-console.log('MadansFirstTelegramBot has started. Start conversations in your Telegram.');
+console.log('HIS TelegramBot has started. Start conversations in your Telegram.');
