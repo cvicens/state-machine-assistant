@@ -33,12 +33,16 @@ app.post('/new-message', function(req, res, next) {
   const chatId = personalId; // TODO look personalId in DB to get chatId or die
   console.log('new-message for', message, personalId, 'with external chatId', chatId, 'and patientId', patientId);
   if (chatId) {
-    bot.sendMessage(chatId, message);
-    res.end('ok');
-    return;
+    bot.sendMessage(chatId, message)
+      .then((result) => {
+        console.log('new-message result', result);
+        res.end('ok');  
+      })
+      .catch((error) => {
+        console.error('new-message error', error);
+        res.status(404).end('no chatId could be found for ID(' + personalId + ')');
+      });
   }
-
-  res.status(404).end('no chatId could be found for ID(' + personalId + ')');
 });
 
 // Start Express Server
