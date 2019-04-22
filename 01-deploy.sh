@@ -49,6 +49,8 @@ spec:
  kafka:
    replicas: 3
    listeners:
+     plainText: {}
+     tls: {}    
      external:
        type: route
    storage:

@@ -1,5 +1,9 @@
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Base64;
+
+import org.apache.http.HttpRequest;
+import org.apache.http.HttpResponse;
 
 import org.apache.camel.Exchange;
 
@@ -27,72 +31,84 @@ import ca.uhn.hl7v2.util.Terser;
 public class HisToBot extends RouteBuilder {
   @Override
   public void configure() throws Exception {
-    // Temporary from telegram, in short this should be kafka
-    from("telegram:bots/774448187:AAFWAZFI_2EaQE4UtyJDHIxB2PIIU9K8z08").convertBodyTo(String.class)
-                .routeId("his-2-bot")
-                .onException(ProtocolException.class)
-                    .handled(true)
-                    .log(LoggingLevel.ERROR, "Error connecting to server, please check the application.properties file ${exception.message}")
-                    .end()
-                .onException(HL7Exception.class)
-                    .handled(true)
-                    .log(LoggingLevel.ERROR, "Error unmarshalling ${exception.message}")
-                    .end()
-                .log("Route started from Telegram")
-                .log("body: ${body}")
-                // very simple mapping from a HLV2 patient to Telegram message
-                .process(exchange -> {
-                    String msg = exchange.getIn().getBody(String.class);
-                    msg = msg.replaceAll("\n", "\r");                    
+    
+    from("kafka:{{kafka.topic}}?brokers={{kafka.bootstrap-servers}}&groupId={{kafka.groupId}}")
+        .routeId("hl7-to-patient-info")
+        .onException(ProtocolException.class)
+            .handled(true)
+            .log(LoggingLevel.ERROR, "Error connecting to server, please check the application.properties file ${exception.message}")
+            .end()
+        .onException(HL7Exception.class)
+            .handled(true)
+            .log(LoggingLevel.ERROR, "Error unmarshalling ${exception.message}")
+            .end()
+        .log("Route started from Telegram")
+        .log("body: ${body}")
+        .process(exchange -> {
+            String encodedMessage = exchange.getIn().getBody(String.class);
+            System.out.println("Encoded Message " + encodedMessage);
 
-                    HapiContext context = new DefaultHapiContext();
-                    Parser p = context.getGenericParser();
-                    Message hapiMsg   = p.parse(msg);
-                    
-                    Terser terser = new Terser(hapiMsg);
-                    
-                    String sendingApplication = terser.get("/.MSH-3-1");
-                    System.out.println("sendingApplication " + sendingApplication);
+            byte[] decodedBytes = Base64.getDecoder().decode(encodedMessage);
+            String decodedMessage = new String(decodedBytes);
+            decodedMessage = decodedMessage.replaceAll("\n", "\r");
+            System.out.println("Decoded Message " + decodedMessage);
 
-                    String msgCode = terser.get("/.MSH-9-1");
-                    String msgTriggerEvent = terser.get("/.MSH-9-2");
-                    
-                    System.out.println("msgCode: " + msgCode + " msgTriggerEvent: " + msgTriggerEvent);
-                    
-                    String surname = terser.get("/.PID-5-1");
-                    System.out.println("surname " + surname);
-                    String name = terser.get("/.PID-5-2");
-                    String patientId = terser.get("/.PID-2-1") != null ? terser.get("/.PID-2-1") : terser.get("/.PID-3-1");
-                    
-                    Map<String, String> data = new HashMap<String, String>();
+            HapiContext context = new DefaultHapiContext();
+            Parser p = context.getGenericParser();
+            Message hapiMessage   = p.parse(decodedMessage);
+            
+            Terser terser = new Terser(hapiMessage);
+            
+            String sendingApplication = terser.get("/.MSH-3-1");
+            System.out.println("sendingApplication " + sendingApplication);
 
-                    String message = "Patient " + name + " " + surname + " has been";
-                    if (msgTriggerEvent.equalsIgnoreCase("A01") || msgTriggerEvent.equalsIgnoreCase("A04")) {
-                        message += " admitted (" + msgTriggerEvent + ")";
-                    } else if (msgTriggerEvent.equalsIgnoreCase("A08")) {
-                        message += " updated (" + msgTriggerEvent + ")";
-                    } else if (msgTriggerEvent.equalsIgnoreCase("A03")) {
-                        message += " discharged (" + msgTriggerEvent + ")";
-                    } else {
-                        message += " taken care (" + msgTriggerEvent + ")";
-                    }
+            String msgCode = terser.get("/.MSH-9-1");
+            String msgTriggerEvent = terser.get("/.MSH-9-2");
+            
+            System.out.println(">>> HL7 code: " + msgCode + " event: " + msgTriggerEvent);
+            
+            String surname = terser.get("/.PID-5-1");
+            String name = terser.get("/.PID-5-2");
+            String patientId = terser.get("/.PID-2-1") != null ? terser.get("/.PID-2-1") : terser.get("/.PID-3-1");
+            String personalId = terser.get("/.PID-4-1") != null ? terser.get("/.PID-4-1") : terser.get("/.PID-3-1");
+            
+            Map<String, String> data = new HashMap<String, String>();
 
-                    data.put("message", message);
-                    data.put("patientId", patientId);
+            String message = "Patient " + name + " " + surname + " with ID(" + personalId + ")" + " has been";
+            if (msgTriggerEvent.equalsIgnoreCase("A01") || msgTriggerEvent.equalsIgnoreCase("A04")) {
+                message += " admitted (" + msgTriggerEvent + ")";
+            } else if (msgTriggerEvent.equalsIgnoreCase("A08")) {
+                message += " updated (" + msgTriggerEvent + ")";
+            } else if (msgTriggerEvent.equalsIgnoreCase("A03")) {
+                message += " discharged (" + msgTriggerEvent + ")";
+            } else {
+                message += " taken care (" + msgTriggerEvent + ")";
+            }
 
-                    exchange.getIn().setBody(data);
-                })
-                // marshall to JSON with GSON
-                .marshal().json(JsonLibrary.Gson)
-                .log("Converting to String JSON data: ${body}")
-                .convertBodyTo(String.class)
-                //.to("telegram:bots/829504574:AAEjoaDiD0118_YFI88g94CI5eIfo7wCnpY")
-                // TODO: use patient ID instead of constant chat ID!!!!
-                .setHeader(Exchange.HTTP_PATH, constant("260677105"))
-                .log("Sending message to telegram bot {{telegram-bot.host}}:{{telegram-bot.port}}: ${body}")
-                .to("http://{{telegram-bot.host}}:{{telegram-bot.port}}/new-message/") 
-                // log the outcome
-                .log("Patient created successfully: ${body}");
+            data.put("message", message);
+            data.put("personalId", "260677105"); // Change to personalId once Telegram Bot is ready
+            data.put("patientId", patientId);
+
+            exchange.getIn().setBody(data);
+        })
+        // marshall to JSON with GSON
+        .marshal().json(JsonLibrary.Gson)
+        .log("Converting to JSON data: ${body}")
+        .convertBodyTo(String.class)
+        .log("Sending message to telegram bot http://{{telegram-bot.host}}:{{telegram-bot.port}}/new-message: ${body}")
+        .to("direct:send-patient-info-to-bot")
+        .log("Patient info sent successfully: ${body}");
+
+    from("direct:send-patient-info-to-bot")
+        .routeId("send-patient-info-to-bot")
+        .removeHeaders("*") // Otherwise you'll probably get a 400 error
+        .setHeader("id", header(Exchange.TIMER_COUNTER))
+        .setHeader(Exchange.HTTP_METHOD, constant("POST"))
+        .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
+        .setHeader(Exchange.HTTP_CHARACTER_ENCODING, constant("UTF-8"))
+        .log("Executing saga #${headers.id} ${body}")
+        .to("http4://{{telegram-bot.host}}:{{telegram-bot.port}}/new-message")
+        .log("Patient info sent successfully: ${body}");
   }
 
   public class ChatBotLogic {

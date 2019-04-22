@@ -10,3 +10,9 @@ target
 .project
 bin
 tmp
+
+#
+.circleci/
+.editorconfig
+.mvn/
+.vscode/
