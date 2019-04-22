@@ -47,6 +47,8 @@ app.post('/new-message', function(req, res, next) {
         console.error('new-message error', error);
         res.status(404).end('no chatId could be found for ID(' + personalId + ')');
       });
+  } else {
+    res.status(404).end('no chatId could be found for ID(' + personalId + ')');
   }
 });
 
