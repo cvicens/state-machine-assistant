@@ -21,7 +21,7 @@ const app = express();
 app.use(json());
 
 app.use(function (req, res, next) {
-  console.log('>>> Request:', req);
+  console.log('>>> Request:', req.body);
   next();
 });
 
