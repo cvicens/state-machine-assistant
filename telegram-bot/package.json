@@ -7,7 +7,9 @@
     "server": "npx nodemon app.js",
     "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint"
+    "lint": "eslint",
+    "openshift": "nodeshift --strictSSL=false --dockerImage=registry.access.redhat.com/rhoar-nodejs/nodejs-10",
+    "openshift:undeploy": "nodeshift --strictSSL=false undeploy"
   },
   "repository": {
     "type": "git",
@@ -24,7 +26,8 @@
   "homepage": "https://github.com/cvicens/camel-k-health-assistant#readme",
   "devDependencies": {
     "eslint": "^5.16.0",
-    "nodemon": "^1.18.11"
+    "nodemon": "^1.18.11",
+    "nodeshift": "~3.0.0"
   },
   "dependencies": {
     "express": "^4.16.4",

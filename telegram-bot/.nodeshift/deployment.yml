@@ -1,0 +1,19 @@
+spec:
+  template:
+    spec:
+      containers:
+        - env:
+            - name: TELEGRAM_TOKEN
+              value: ADD_YOUR_TELEGRAM_TOKEN
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+              scheme: HTTP
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 30

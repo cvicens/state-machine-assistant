@@ -20,8 +20,10 @@ const app = express();
 // parse the updates to JSON
 app.use(json());
 
+// Logging pings...
 app.use(function (req, res, next) {
-  console.log('>>> Request:', req.body);
+  const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+  console.log(`>>> ${fullUrl} Request: ${JSON.stringify(req.body)}`);
   next();
 });
 
@@ -57,6 +59,10 @@ const port = process.env.PORT || process.env.TELEGRAM_BOT_CUSTOM_PORT || 8080;
 const host = process.env.IP || process.env.TELEGRAM_BOT_CUSTOM_HOST || '0.0.0.0';
 app.listen(port, host, () => {
   console.log(`Telegram Bot started at: ${new Date()} on port: ${port}`);
+});
+
+app.use('/api/health', (request, response) => {
+  response.send({status: 'ok'});
 });
 
 // Just to ping!
