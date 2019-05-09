@@ -4,7 +4,7 @@ spec:
       containers:
         - env:
             - name: TELEGRAM_TOKEN
-              value: ADD_YOUR_TELEGRAM_TOKEN
+              value: 829504574:AAEjoaDiD0118_YFI88g94CI5eIfo7wCnpY
           readinessProbe:
             httpGet:
               path: /api/health

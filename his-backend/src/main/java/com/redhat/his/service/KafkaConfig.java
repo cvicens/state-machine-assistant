@@ -35,6 +35,9 @@ public class KafkaConfig {
 	@Value("${kafka.topic}")
 	private String topicName;
 
+	@Value("${kafka.security.protocol}")
+	private String securityProtocol;
+	
 	@Value("${kafka.ssl.truststore.location}")
 	private String sslTruststoreLocation;
 
@@ -57,16 +60,24 @@ public class KafkaConfig {
 		props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class.getName());
 		props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 
-		props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, sslTruststoreLocation);
-		props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, sslTruststorePassword);
-
-		props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, sslKeystoreLocation);
-		props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, sslKeystorePassword);
+		if (sslTruststoreLocation != null && !sslTruststoreLocation.equalsIgnoreCase("NONE")) {
+			props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, sslTruststoreLocation);
+		}
+		if (sslTruststorePassword != null && !sslTruststorePassword.equalsIgnoreCase("NONE")) {
+			props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, sslTruststorePassword);
+		}
+		if (sslKeystoreLocation != null && !sslKeystoreLocation.equalsIgnoreCase("NONE")) {
+			props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, sslKeystoreLocation);
+		}
+		if (sslKeystorePassword != null && !sslKeystorePassword.equalsIgnoreCase("NONE")) {
+			props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, sslKeystorePassword);
+		}
 
 		//props.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
 
-		props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
-
+		if (securityProtocol != null && securityProtocol.equalsIgnoreCase("SSL")) {
+			props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocol);
+		}
 		
 		return new KafkaProducer<>(props);
 	}
@@ -84,10 +95,24 @@ public class KafkaConfig {
 		
 		props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 
-		props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, sslTruststoreLocation);
-		props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, sslTruststorePassword);
+		if (sslTruststoreLocation != null && !sslTruststoreLocation.equalsIgnoreCase("NONE")) {
+			props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, sslTruststoreLocation);
+		}
+		if (sslTruststorePassword != null && !sslTruststorePassword.equalsIgnoreCase("NONE")) {
+			props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, sslTruststorePassword);
+		}
+		if (sslKeystoreLocation != null && !sslKeystoreLocation.equalsIgnoreCase("NONE")) {
+			props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, sslKeystoreLocation);
+		}
+		if (sslKeystorePassword != null && !sslKeystorePassword.equalsIgnoreCase("NONE")) {
+			props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, sslKeystorePassword);
+		}
 
-		props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
+		//props.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
+
+		if (securityProtocol != null && securityProtocol.equalsIgnoreCase("SSL")) {
+			props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocol);
+		}
 
 		Consumer<Long, String> consumer = new KafkaConsumer<>(props);
 				
@@ -107,10 +132,24 @@ public class KafkaConfig {
 		
 		props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false");
 
-		props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, sslTruststoreLocation);
-		props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, sslTruststorePassword);
+		if (sslTruststoreLocation != null && !sslTruststoreLocation.equalsIgnoreCase("NONE")) {
+			props.put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, sslTruststoreLocation);
+		}
+		if (sslTruststorePassword != null && !sslTruststorePassword.equalsIgnoreCase("NONE")) {
+			props.put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, sslTruststorePassword);
+		}
+		if (sslKeystoreLocation != null && !sslKeystoreLocation.equalsIgnoreCase("NONE")) {
+			props.put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, sslKeystoreLocation);
+		}
+		if (sslKeystorePassword != null && !sslKeystorePassword.equalsIgnoreCase("NONE")) {
+			props.put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, sslKeystorePassword);
+		}
 
-		props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
+		//props.put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "");
+
+		if (securityProtocol != null && securityProtocol.equalsIgnoreCase("SSL")) {
+			props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocol);
+		}
 
 		Consumer<String, Long> consumer = new KafkaConsumer<>(props);
 				

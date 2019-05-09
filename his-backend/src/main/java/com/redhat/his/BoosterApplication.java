@@ -16,13 +16,21 @@
 
 package com.redhat.his;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.FileCopyUtils;
 
 @SpringBootApplication
 public class BoosterApplication {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws FileNotFoundException, IOException {
+        FileCopyUtils.copy(new ClassPathResource("keystore.jks").getInputStream(),
+				new FileOutputStream("/tmp/keystore.jks"));
         SpringApplication.run(BoosterApplication.class, args);
     }
 

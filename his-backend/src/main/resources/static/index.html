@@ -22,37 +22,43 @@
     <!-- Load AngularJS -->
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
     <script type="text/javascript">
-      var app = angular.module("FruitManagement", []);
+      var app = angular.module("PatientManagement", []);
 
       //Controller Part
-      app.controller("FruitManagementController", function ($scope, $http) {
+      app.controller("PatientManagementController", function ($scope, $http) {
 
         //Initialize page with default data which is blank in this example
-        $scope.fruits = [];
+        $scope.patients = [];
 
         $scope.form = {
-          id: -1,
-          name: ""
+          patientId: -1,
+          personalId: "",
+          firstName: "",
+          lastName: "",
         };
 
         //Now load the data from server
         _refreshPageData();
 
-        //HTTP POST/PUT methods for add/edit fruits
+        //HTTP POST/PUT methods for add/edit patients
         $scope.update = function () {
           var method = "";
           var url = "";
           var data = {};
-          if ($scope.form.id == -1) {
-            //Id is absent so add fruits - POST operation
+          if ($scope.form.patientId == -1) {
+            //Id is absent so add patients - POST operation
             method = "POST";
-            url = '/api/fruits';
-            data.name = $scope.form.name;
+            url = '/api/patients';
+            data.personalId = $scope.form.personalId;
+            data.firstName = $scope.form.firstName;
+            data.lastName = $scope.form.lastName;
           } else {
             //If Id is present, it's edit operation - PUT operation
             method = "PUT";
-            url = '/api/fruits/' + $scope.form.id;
-            data.name = $scope.form.name;
+            url = '/api/patients/' + $scope.form.patientId;
+            data.personalId = $scope.form.personalId;
+            data.firstName = $scope.form.firstName;
+            data.lastName = $scope.form.lastName;
           }
 
           $http({
@@ -65,28 +71,30 @@
           }).then(_success, _error);
         };
 
-        //HTTP DELETE- delete fruit by id
-        $scope.remove = function (fruit) {
+        //HTTP DELETE- delete patient by id
+        $scope.remove = function (patient) {
           $http({
             method: 'DELETE',
-            url: '/api/fruits/' + fruit.id
+            url: '/api/patients/' + patient.patientId
           }).then(_success, _error);
         };
 
-        //In case of edit fruits, populate form with fruit data
-        $scope.edit = function (fruit) {
-          $scope.form.name = fruit.name;
-          $scope.form.id = fruit.id;
+        //In case of edit patients, populate form with patient data
+        $scope.edit = function (patient) {
+          $scope.form.patientId = patient.patientId;
+          $scope.form.personalId = patient.personalId;
+          $scope.form.firstName = patient.firstName;
+          $scope.form.lastName = patient.lastName;
         };
 
           /* Private Methods */
-        //HTTP GET- get all fruits collection
+        //HTTP GET- get all patients collection
         function _refreshPageData() {
           $http({
             method: 'GET',
-            url: '/api/fruits'
+            url: '/api/patients'
           }).then(function successCallback(response) {
-            $scope.fruits = response.data;
+            $scope.patients = response.data;
           }, function errorCallback(response) {
             console.log(response.statusText);
           });
@@ -103,36 +111,44 @@
 
         //Clear the form
         function _clearForm() {
-          $scope.form.name = "";
-          $scope.form.id = -1;
+          $scope.form.patientId = -1;
+          $scope.form.personalId = "";
+          $scope.form.firstName = "";
+          $scope.form.lastName = "";
         }
       });
     </script>
 </head>
-<body ng-app="FruitManagement" ng-controller="FruitManagementController">
+<body ng-app="PatientManagement" ng-controller="PatientManagementController">
 
 <div class="container">
     <h1>CRUD Mission - Spring Boot</h1>
     <p>
-        This application demonstrates how a Spring Boot application implements a CRUD endpoint to manage <em>fruits</em>.
-        This management interface invokes the CRUD service endpoint, that interact with a ${db.name} database using JDBC.
+        This application demonstrates how a Spring Boot application implements a CRUD endpoint to manage <em>patients</em>.
+        This management interface invokes the CRUD service endpoint, that interact with a ${db.firstName} database using JDBC.
     </p>
 
-    <h3>Add/Edit a fruit</h3>
+    <h3>Add/Edit a patient</h3>
     <form ng-submit="update()">
         <div class="row">
-            <div class="col-6"><input type="text" placeholder="Name" ng-model="form.name" size="60"/></div>
+            <div class="col-6"><input type="text" placeholder="First Name" ng-model="form.firstName" size="60"/></div>
+        </div>
+        <div class="row">
+            <div class="col-6"><input type="text" placeholder="Last Name" ng-model="form.lastName" size="60"/></div>
+        </div>
+        <div class="row">
+            <div class="col-6"><input type="text" placeholder="Personal Id" ng-model="form.personalId" size="60"/></div>
         </div>
         <input type="submit" value="Save"/>
     </form>
 
-    <h3>Fruit List</h3>
+    <h3>Patient List</h3>
     <div class="row">
         <div class="col-2">Name</div>
     </div>
-    <div class="row" ng-repeat="fruit in fruits">
-        <div class="col-2">{{ fruit.name }}</div>
-        <div class="col-8"><a ng-click="edit( fruit )" class="btn">Edit</a> <a ng-click="remove( fruit )" class="btn">Remove</a>
+    <div class="row" ng-repeat="patient in patients">
+        <div class="col-2">{{ patient.firstName + ' ' + patient.lastName }}</div>
+        <div class="col-8"><a ng-click="edit( patient )" class="btn">Edit</a> <a ng-click="remove( patient )" class="btn">Remove</a>
         </div>
     </div>
 </div>
