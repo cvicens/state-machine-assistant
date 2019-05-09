@@ -35,7 +35,7 @@ export class PatientsService {
 
   init() {
     this.baseUrl = this.config.API_ENDPOINT;
-    if (!this.baseUrl) {
+    if (this.baseUrl == null) {
       return false;
     }
 
@@ -43,7 +43,7 @@ export class PatientsService {
   }
 
   getPatients() {
-    if (this.baseUrl) {
+    if (this.baseUrl != null) {
       // return this.http.get<Patient[]>(this.baseUrl + '/api/patients');
       this.http.get<Patient[]>(this.baseUrl + '/api/patients')
       .subscribe(

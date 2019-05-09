@@ -7,7 +7,11 @@ import { AppRoutingModule } from './app-routing.module';
 
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
-import { MatButtonModule, MatToolbarModule, MatCheckboxModule, MatListModule, MatIconModule } from '@angular/material';
+// tslint:disable-next-line:max-line-length
+import { MatButtonModule, MatToolbarModule, MatCheckboxModule, MatListModule, MatIconModule, MatFormFieldModule, MatInputModule, MatExpansionModule, MatCardModule, MatGridListModule } from '@angular/material';
+
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatStepperModule } from '@angular/material/stepper';
 
 import { Routes, RouterModule } from '@angular/router';
 
@@ -37,7 +41,9 @@ const appRoutes: Routes = [
     BrowserModule,
     AppRoutingModule,
     BrowserAnimationsModule,
-    MatButtonModule, MatToolbarModule, MatCheckboxModule, MatListModule, MatIconModule,
+    // tslint:disable-next-line:max-line-length
+    MatButtonModule, MatToolbarModule, MatCheckboxModule, MatListModule, MatIconModule, MatStepperModule, MatFormFieldModule, MatInputModule, MatExpansionModule, MatCardModule, MatGridListModule,
+    FormsModule, ReactiveFormsModule,
     HttpClientModule,
     RouterModule.forRoot(
       appRoutes,

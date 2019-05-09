@@ -3,17 +3,7 @@ import { Patient } from 'src/app/model/patient.model';
 import { PatientsService } from 'src/app/services/patients.service';
 import { HttpRuntimeException } from 'src/app/model/http-error.model';
 
-const data = [
-  {
-    itemId : '329199',
-    name : 'Forge Laptop Sticker',
-    description : 'JBoss Community Forge Project Sticker',
-    price : 8.5,
-    availability : {
-      quantity : 12
-    }
-  }
-];
+import {FormBuilder, FormGroup, Validators} from '@angular/forms';
 
 @Component({
   selector: 'app-list-patients',
@@ -26,9 +16,13 @@ export class ListPatientsComponent implements OnInit {
   refreshStopTime = -1;
   httpRuntimeException: HttpRuntimeException;
 
+  firstFormGroup: FormGroup;
+  secondFormGroup: FormGroup;
+
+
   patients: Patient[];
 
-  constructor(private patientsService: PatientsService) {
+  constructor(private patientsService: PatientsService, private formBuilder: FormBuilder) {
     this.patientsService.patients.subscribe(payload => {
       this.loading = false;
       this.refreshStopTime = Date.now();
@@ -47,6 +41,13 @@ export class ListPatientsComponent implements OnInit {
 
   ngOnInit() {
     this.refresh(null);
+
+    this.firstFormGroup = this.formBuilder.group({
+      firstCtrl: ['', Validators.required]
+    });
+    this.secondFormGroup = this.formBuilder.group({
+      secondCtrl: ['', Validators.required]
+    });
   }
 
   refresh($event: any) {

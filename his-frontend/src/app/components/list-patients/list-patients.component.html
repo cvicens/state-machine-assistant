@@ -1,8 +1,53 @@
-<mat-list>
-  <h3 mat-subheader>Patients</h3>
-  <mat-list-item *ngFor="let patient of patients">
-    <mat-icon mat-list-icon>folder</mat-icon>
-    <h4 mat-line>{{patient.firstName}}</h4>
-    <p mat-line> {{folder.stage | date}} </p>
-  </mat-list-item>
-</mat-list>
+<mat-toolbar color="secundary">
+  <mat-toolbar-row>
+    <span>Patients</span>
+    <span class="example-spacer"></span>
+    <button mat-icon-button color="primary">
+        <mat-icon aria-hidden="false" aria-label="add icon">add</mat-icon>
+    </button>
+  </mat-toolbar-row>
+</mat-toolbar>
+
+<mat-grid-list cols="2" rowHeight="2:1">
+    <mat-card class="card-item" *ngFor="let patient of patients">
+      <mat-card-header>
+        <mat-card-title>{{patient.firstName + ' ' + patient.lastName}}</mat-card-title>
+        <mat-card-subtitle>{{patient.personalId}}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-horizontal-stepper #stepper>
+          <mat-step [stepControl]="firstFormGroup">
+            <form [formGroup]="firstFormGroup">
+              <ng-template matStepLabel>Admission</ng-template>
+              <mat-form-field>
+                  <input matInput placeholder="Reason" formControlName="firstCtrl" required>
+                </mat-form-field>
+              <div>
+              <button mat-button matStepperNext>Next</button>
+              </div>
+            </form>
+          </mat-step>
+          <mat-step [stepControl]="secondFormGroup">
+            <form [formGroup]="secondFormGroup">
+              <ng-template matStepLabel>Update Status</ng-template>
+              <mat-form-field>
+                <input matInput placeholder="Reason" formControlName="secondCtrl" required>
+              </mat-form-field>
+              <div>
+                <button mat-button matStepperPrevious>Back</button>
+                <button mat-button matStepperNext>Next</button>
+              </div>
+            </form>
+          </mat-step>
+          <mat-step>
+            <ng-template matStepLabel>Discharge</ng-template>
+            Patient can leave
+            <div>
+              <button mat-button matStepperPrevious>Back</button>
+              <button mat-button (click)="stepper.reset()">Reset</button>
+            </div>
+          </mat-step>
+        </mat-horizontal-stepper>
+      </mat-card-content>
+    </mat-card>
+</mat-grid-list>
