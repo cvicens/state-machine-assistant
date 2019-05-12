@@ -7,15 +7,17 @@ spec:
     spec:
       containers:
         - env:
+            - name: DB_HOST
+              value: his-backend-database
             - name: DB_USERNAME
               valueFrom:
                  secretKeyRef:
-                   name: my-database-secret
+                   name: his-backend-database-secret
                    key: user
             - name: DB_PASSWORD
               valueFrom:
                  secretKeyRef:
-                   name: my-database-secret
+                   name: his-backend-database-secret
                    key: password
             - name: JAVA_OPTIONS
               value: "-Dspring.profiles.active=openshift"

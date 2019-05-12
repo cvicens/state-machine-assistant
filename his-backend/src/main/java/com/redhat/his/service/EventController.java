@@ -113,14 +113,14 @@ public class EventController {
 	@GetMapping
 	public ResponseEntity<String> sendEvent(@RequestParam("personalId") String personalId,
 			@RequestParam("eventType") String eventType, @RequestParam("eventTrigger") String eventTrigger) {
-		// Event newEvent = new Event(eventType, eventTrigger,
-		// sdf.format(System.currentTimeMillis()));
+			// Event newEvent = new Event(eventType, eventTrigger,
+			// sdf.format(System.currentTimeMillis()));
 
-		String message = new String(ADT_A04);
-		String newEvent =  Base64.getEncoder().encodeToString(message.getBytes());
-		ResponseEntity<String> response = _sendToTopic(topicName, newEvent);
+			String message = new String(ADT_A04);
+			String newEvent =  Base64.getEncoder().encodeToString(message.getBytes());
+			ResponseEntity<String> response = _sendToTopic(topicName, newEvent);
         
-        return response;
+      return response;
     }
     
     private ResponseEntity<String> _sendToTopic(String topicName, String event) {

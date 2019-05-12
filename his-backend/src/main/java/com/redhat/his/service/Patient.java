@@ -47,7 +47,7 @@ public class Patient {
         return patientId;
     }
 
-    public void setId(Integer patientId) {
+    public void setPatientId(Integer patientId) {
         this.patientId = patientId;
     }
 

@@ -18,7 +18,7 @@ export class ListPatientsComponent implements OnInit {
 
   firstFormGroup: FormGroup;
   secondFormGroup: FormGroup;
-
+  thirdFormGroup: FormGroup;
 
   patients: Patient[];
 
@@ -48,11 +48,19 @@ export class ListPatientsComponent implements OnInit {
     this.secondFormGroup = this.formBuilder.group({
       secondCtrl: ['', Validators.required]
     });
+    this.thirdFormGroup = this.formBuilder.group({
+      thirdCtrl: ['', Validators.required]
+    });
   }
 
   refresh($event: any) {
     this.loading = true;
     this.refreshStartTime = Date.now();
     this.patientsService.getPatients();
+  }
+
+  setStage(stage: string, patient: Patient) {
+    patient.stage = stage;
+    this.patientsService.updatePatientStage(patient.patientId, patient);
   }
 }

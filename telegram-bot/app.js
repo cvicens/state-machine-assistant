@@ -54,6 +54,19 @@ app.post('/new-message', function(req, res, next) {
   }
 });
 
+// Customer registration
+const db = require('./lib/db');
+const customersRoute = require('./lib/routes/customers');
+const customers = require('./lib/api/customers');
+
+app.use('/api', customersRoute);
+
+db.init().then(() => {
+  console.log('Database init\'d');
+}).catch(err => {
+  console.log(err);
+});
+
 // Start Express Server
 const port = process.env.PORT || process.env.TELEGRAM_BOT_CUSTOM_PORT || 8080;
 const host = process.env.IP || process.env.TELEGRAM_BOT_CUSTOM_HOST || '0.0.0.0';
@@ -72,8 +85,11 @@ app.use('/api/health', (request, response) => {
 
 // eslint-disable-next-line no-unused-vars
 bot.onText(/\/help/, function(msg, match) {
+  console.log('/help handler');
   const fromId = msg.from.id;
-  bot.sendMessage(fromId, 'I can help you in getting the updates related to your health care.');
+  bot.sendMessage(fromId, 
+    'I can help you sending updates to you when you\'re in a heath care facility.' +
+    'To help you I have few commands:\n/help\n/start\n/signup <Personal ID>\n/update <Personal ID>\n/quit');
 });
 
 // eslint-disable-next-line no-unused-vars
@@ -82,11 +98,80 @@ bot.onText(/\/myid/, function(msg, match) {
   bot.sendMessage(fromId, `This is your id: ${fromId}`);
 });
 
+// Matches "/signup [whatever]"
+bot.onText(/\/signup(\s*(.+)?)/, (msg, match) => {
+  console.log('/signup handler');
+  const chatId = msg.chat.id;
+  const personalId = match[2];
+
+  if (personalId) {
+    bot.sendMessage(chatId, 'Creating a profile for you...');
+    customers.create(chatId, personalId).then(result => {
+      console.log(`signup result: ${result.rows[0]}`);
+      bot.sendMessage(chatId, `You've been added with id: ${personalId}`);
+    }).catch(err => {
+      console.error(`Error while signup: ${JSON.stringify(err)}`);
+      if (err.code === '23505') { // unique_violation
+        bot.sendMessage(chatId, `Your user already exists, maybe you want to /update ${personalId}`);  
+      } else {
+        bot.sendMessage(chatId, 'There was a problem signing you up :-(');
+      }
+    });
+  }
+  else {
+    bot.sendMessage(chatId, 'You didn\'t send any personal id, please try again :-)');
+  }
+});
+
+// Matches "/update [whatever]"
+bot.onText(/\/update(\s*(.+)?)/, (msg, match) => {
+  console.log('/update handler');
+  const chatId = msg.chat.id;
+  const personalId = match[2];
+
+  if (personalId) {
+    bot.sendMessage(chatId, 'Updating you ID...');
+    customers.update({chatId, personalId}).then(result => {
+      if (result.rowCount === 0) {
+        bot.sendMessage(chatId, `I'm afraid you haven't signed up yet... maybe you want to /signup ${personalId}`);
+      } else {
+        console.log(`update result: ${result.rows[0]}`);
+        bot.sendMessage(chatId, `Your ID was updated to: ${personalId}`);
+      }
+    }).catch(err => {
+      console.error(`Error while updating: ${JSON.stringify(err)}`);
+      bot.sendMessage(chatId, 'There was a problem updating your ID :-(');
+    });
+  }
+  else {
+    bot.sendMessage(chatId, 'You didn\'t send any personal id, please try again :-)');
+  }
+});
+
+bot.onText(/\/quit/, (msg) => {
+  console.log('/quit handler');
+  const chatId = msg.chat.id;
+
+  bot.sendMessage(chatId, 'Deleting your profile');
+  // Let's create a customer entry
+  customers.remove(chatId).then(result => {
+    if (result.rowCount === 0) {
+      bot.sendMessage(chatId, 'I\'m afraid you never signed up ;-)');
+    } else {
+      console.log(`delete result: ${result.rows[0]}`);
+      bot.sendMessage(chatId, 'We have succesfully deleted your profile');
+    }
+  }).catch(err => {
+    console.error(`Error while quitting: ${JSON.stringify(err)}`);
+    bot.sendMessage(chatId, 'There was a problem deleting your profile :-(, will fix it and inform you.');
+  });
+});
+
 // eslint-disable-next-line no-unused-vars
 bot.onText(/\/start/, function(msg, match) {
   const fromId = msg.from.id;
-  bot.sendMessage(fromId, 'They call me HIS TelegramBot. ' +
-    'I can help you in getting the updates related to your health care.'+
-    'To help you I have few commands.\n/help\n/start\n/sentiments');
+  bot.sendMessage(fromId, 'They call me Health Assistant Bot. ' +
+    'I will help you sending updates to you when you\'re in a heath care facility.\n'+
+    'Here you are a few commands I have to help you:\n/help\n/start\n/signup <Personal ID>\n/update <Personal ID>\n/quit');
 });
-console.log('HIS TelegramBot has started. Start conversations in your Telegram.');
+console.log('Health Assistant Bot has started. Start conversations in your Telegram.');

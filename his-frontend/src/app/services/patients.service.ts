@@ -4,11 +4,13 @@ import { Patient } from '../model/patient.model';
 import { ConfigService } from './config.service';
 import { Config } from '../model/config.model';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { MatSnackBar } from '@angular/material';
+import { GenericService } from './generic.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class PatientsService {
+export class PatientsService extends GenericService {
   // tslint:disable-next-line:variable-name
   // private _ready: BehaviorSubject<boolean> = new BehaviorSubject(false);
   // public readonly ready: Observable<boolean> = this._ready.asObservable();
@@ -20,7 +22,8 @@ export class PatientsService {
   config: Config;
   baseUrl: string;
 
-  constructor(private http: HttpClient, private configService: ConfigService) {
+  constructor(private http: HttpClient, private configService: ConfigService, protected snackBar: MatSnackBar) {
+    super(snackBar);
     console.log('PatientsService constructror');
     this.configService.config.subscribe(config => {
       console.log('config', config);
@@ -49,12 +52,38 @@ export class PatientsService {
       .subscribe(
         (patients: Patient[]) => {
           this._patients.next(patients);
+          this.openSnackBar(`Retrieved #${patients.length} patients`);
         },
         error => {
-          console.error('getPatients ERROR!', JSON.stringify(error));
+          this.openSnackBar('Error while moving to retrieveing patients');
+          console.error('Error while moving to retrieveing patients', JSON.stringify(error));
         }
       );
     } else {
+      this.openSnackBar('Patients Service not ready, try again please');
+      console.error('PatientsService not ready!');
+    }
+  }
+
+  updatePatientStage(patientId: number, patient: Patient) {
+    if (this.baseUrl != null) {
+      if (!patient) {
+        console.error('patient is null at updatePatientStage()');
+        return;
+      }
+      console.log(`patient: ${JSON.stringify(patient)}`);
+      this.http.put<Patient>(`${this.baseUrl}/api/patients/${patientId}`, patient)
+      .subscribe(
+        (result: Patient) => {
+          this.openSnackBar(`Patient ${result.patientId} moved to stage ${result.stage}`);
+        },
+        error => {
+          this.openSnackBar(`Error while moving to stage ${patient.stage}`);
+          console.error(`Error while moving to stage ${patient.stage}`, JSON.stringify(error));
+        }
+      );
+    } else {
+      this.openSnackBar('Patients Service not ready, try again please');
       console.error('PatientsService not ready!');
     }
   }

@@ -26,6 +26,7 @@ import com.redhat.his.exception.NotFoundException;
 import com.redhat.his.exception.UnprocessableEntityException;
 import com.redhat.his.exception.UnsupportedMediaTypeException;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -38,13 +39,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping(value = "/api/patients")
 public class PatientController {
 
     private final PatientRepository repository;
 
+    @Autowired
+	EventService eventService;
     public PatientController(PatientRepository repository) {
         this.repository = repository;
     }
@@ -80,8 +83,12 @@ public class PatientController {
         verifyPatientExists(id);
         verifyCorrectPayload(patient);
 
-        patient.setId(id);
-        return repository.save(patient);
+        patient.setPatientId(id);
+        Patient result = repository.save(patient);
+
+        eventService.sendEvent(patient, patient.getStage());
+
+        return result;
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -103,9 +110,9 @@ public class PatientController {
             throw new UnsupportedMediaTypeException("Patient cannot be null");
         }
 
-        if (!Objects.isNull(patient.getPatientId())) {
-            throw new UnprocessableEntityException("Id field must be generated");
-        }
+        //if (!Objects.isNull(patient.getPatientId())) {
+        //    throw new UnprocessableEntityException("Id field must be generated");
+        //}
     }
 
 }

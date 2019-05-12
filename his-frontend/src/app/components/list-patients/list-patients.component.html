@@ -12,7 +12,7 @@
     <mat-card class="card-item" *ngFor="let patient of patients">
       <mat-card-header>
         <mat-card-title>{{patient.firstName + ' ' + patient.lastName}}</mat-card-title>
-        <mat-card-subtitle>{{patient.personalId}}</mat-card-subtitle>
+        <mat-card-subtitle>{{patient.personalId}} @ {{patient.stage}}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
         <mat-horizontal-stepper #stepper>
@@ -23,28 +23,40 @@
                   <input matInput placeholder="Reason" formControlName="firstCtrl" required>
                 </mat-form-field>
               <div>
-              <button mat-button matStepperNext>Next</button>
+              <button mat-button (click)="setStage('triage', patient)" matStepperNext>Next</button>
               </div>
             </form>
           </mat-step>
           <mat-step [stepControl]="secondFormGroup">
             <form [formGroup]="secondFormGroup">
-              <ng-template matStepLabel>Update Status</ng-template>
+              <ng-template matStepLabel>Triage</ng-template>
               <mat-form-field>
-                <input matInput placeholder="Reason" formControlName="secondCtrl" required>
+                <input matInput placeholder="Priority" formControlName="secondCtrl" required>
               </mat-form-field>
               <div>
-                <button mat-button matStepperPrevious>Back</button>
-                <button mat-button matStepperNext>Next</button>
+                <button mat-button (click)="setStage('admission', patient)" matStepperPrevious>Back</button>
+                <button mat-button (click)="setStage('diagnosis', patient)" matStepperNext>Next</button>
               </div>
             </form>
           </mat-step>
+          <mat-step [stepControl]="thirdFormGroup">
+              <form [formGroup]="thirdFormGroup">
+                <ng-template matStepLabel>Diagnosis</ng-template>
+                <mat-form-field>
+                  <input matInput placeholder="Reason" formControlName="thirdCtrl" required>
+                </mat-form-field>
+                <div>
+                  <button mat-button (click)="setStage('triage', patient)"matStepperPrevious>Back</button>
+                  <button mat-button (click)="setStage('discharge', patient)" matStepperNext>Next</button>
+                </div>
+              </form>
+            </mat-step>
           <mat-step>
             <ng-template matStepLabel>Discharge</ng-template>
-            Patient can leave
+            <p class="step-content">Patient can leave</p>
             <div>
-              <button mat-button matStepperPrevious>Back</button>
-              <button mat-button (click)="stepper.reset()">Reset</button>
+              <button mat-button (click)="setStage('diagnosis', patient)" matStepperPrevious>Back</button>
+              <button mat-button (click)="setStage('admission', patient); stepper.reset()">Reset</button>
             </div>
           </mat-step>
         </mat-horizontal-stepper>
