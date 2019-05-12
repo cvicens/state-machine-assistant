@@ -12,4 +12,6 @@ then
       exit 1
 fi
 
+#docker run --name some-postgres -e POSTGRES_PASSWORD=secret -e POSTGRES_USER=luke -e POSTGRES_DB=my_data -p 5432:5432 -d postgres
+
 npm start
