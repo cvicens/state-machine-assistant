@@ -12,7 +12,7 @@ export MINISHIFT_CPUS="3"
 export MINISHIFT_VM_DRIVER="xhyve" # xhyve | virtualbox | kvm
 export MINISHIFT_DISK_SIZE="50g"
 
-export PROJECT_NAME="health-assitant"
+export PROJECT_NAME="health-assistant"
 export CLUSTER_NAME="his-cluster"
 export TOPIC_NAME="hl7-events-topic"
 
