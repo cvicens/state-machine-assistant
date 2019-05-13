@@ -9,10 +9,10 @@ function getConfig (fullUrl) {
     };
 
     if (fullUrl != null) {
-        let match = fullUrl.match(/(http.\:\/\/[^\/]+)\/*/);
-        console.log(`match: ${match}`);
+        let match = fullUrl.match(/(http.*\:\/\/[^\/]+)\/*/);
+        console.debug(`match: ${match}`);
         if (match != null && match[0] != null) {
-            console.log(`match[0]: ${match[0]}`);
+            console.debug(`match[0]: ${match[0]}`);
             config.API_ENDPOINT = match[0].replace(package.name, DEFAULT_BACKEND_SERVICE);  
         }
     }
@@ -29,7 +29,7 @@ function getConfig (fullUrl) {
         config.SECURE_API_ENDPOINT = process.env.SECURE_GW_SERVICE + '-' + process.env.OPENSHIFT_BUILD_NAMESPACE;
     }
 
-    console.log(`config: ${config}`);
+    console.log(`config: ${JSON.stringify(config)}`);
 
     return config;
 }

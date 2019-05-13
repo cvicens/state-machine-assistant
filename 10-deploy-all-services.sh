@@ -20,7 +20,7 @@ cd ${CURRENT_DIR}/integrations/
 
 # Deploy his-backend
 cd ${CURRENT_DIR}/his-backend/
-mvn fabric8:deploy -Popenshift
+mvn fabric8:deploy -Popenshift -DskipTests
 
 # Deploy his-frontend
 cd ${CURRENT_DIR}/his-frontend/

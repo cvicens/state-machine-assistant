@@ -86,7 +86,7 @@ public class HisToBot extends RouteBuilder {
             }
 
             data.put("message", message);
-            data.put("personalId", "260677105"); // Change to personalId once Telegram Bot is ready
+            data.put("personalId", personalId); // Change to personalId once Telegram Bot is ready
             data.put("patientId", patientId);
 
             exchange.getIn().setBody(data);

@@ -17,8 +17,8 @@ public class EventService {
     private final static String DISCHARGE = "discharge";
 
     private final static String ADT_A04 = 
-        "MSH|^~\\&|ADT1|MCM|LABADT|MCM|198808181126|SECURITY|ADT^A04|MSG00001|P|2.4"
-        + "EVN|A08|20050110045502|||||\r"
+        "MSH|^~\\&|ADT1|MCM|LABADT|MCM|198808181126|SECURITY|ADT^A04|MSG00001|P|2.4\r"
+        + "EVN|A04|20050110045502|||||\r"
         + "PID||${PATIENT_ID}|${PERSONAL_ID}||${LAST_NAME}^${FIRST_NAME}||19610615|M||2106-3|1200 N ELM STREET^^GREENSBORO^NC^27401-1020|GL|(919)379-1212|(919)271-3434~(919)277-3114||S||${PERSONAL_ID}5001^2^M10|123456789|9-87654^NC\r"
         + "PV1|1|I|ER^^^^^^B|E|||37^MARTINEZ^JOHN^^^^^^AccMgr^^^^CI|||01||||1|||37^MARTINEZ^JOHN^^^^^^AccMgr^^^^CI|2|40007716^^^AccMgr^VN|4|||||||||||||||||||1||G|||20050110045253||||||\r"
         + "AL1|1||^PENICILLIN||PRODUCES HIVES~RASH\r"

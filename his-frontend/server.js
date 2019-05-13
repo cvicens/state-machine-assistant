@@ -16,8 +16,8 @@ app.options("*", function (req, res) {
 });
 
 // Used for App health checking
-app.get('/sys/info/ping', function(req, res, next) {
-  res.end('"OK"');
+app.use('/api/health', (request, response) => {
+  response.send({status: 'ok'});
 });
 
 // keycloak config 

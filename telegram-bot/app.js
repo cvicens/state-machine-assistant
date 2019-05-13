@@ -37,20 +37,26 @@ app.post(`/bot${TOKEN}`, (req, res) => {
 // eslint-disable-next-line no-unused-vars
 app.post('/new-message', function(req, res, next) {
   const { message, patientId, personalId } = req.body;
-  const chatId = personalId; // TODO look personalId in DB to get chatId or die
-  console.log('new-message for', message, personalId, 'with external chatId', chatId, 'and patientId', patientId);
-  if (chatId) {
-    bot.sendMessage(chatId, message)
-      .then((result) => {
+  console.log(`new-message ${message} for ${personalId} with patientId ${patientId}`);
+  if (message && personalId) {
+    customers.find(personalId).then(result => {
+      if (result.rowCount === 0) {
+        return res.status(404).end('No chatId could be found for ID(' + personalId + ')');
+      }
+      const chatId = result.rows[0].chat_id;
+      bot.sendMessage(chatId, message).then((result) => {
         console.log('new-message result', result);
         res.end('ok');  
-      })
-      .catch((error) => {
+      }).catch((error) => {
         console.error('new-message error', error);
-        res.status(404).end('no chatId could be found for ID(' + personalId + ')');
+        res.status(500).end(`Message couldn't be delivered to ID(${personalId}) in chat (${chatId})`);
       });
+    }).catch(err => {
+      console.error(`Error while finding personalId: ${JSON.stringify(err)}`);
+      res.status(500).end(`Message couldn't be delivered to ID(${personalId}) problem related to the database :-(`);
+    });
   } else {
-    res.status(404).end('no chatId could be found for ID(' + personalId + ')');
+    res.status(400).end(`Bad parameters message, patientId, personalId = ${message}, ${patientId}, ${personalId}`);
   }
 });
 
