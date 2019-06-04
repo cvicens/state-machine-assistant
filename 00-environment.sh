@@ -2,8 +2,6 @@
 
 export PLATFORM="mac" # linux | mac | windows
 
-export PROJECT_NAME="openwhisk-infra"
-
 export MINISHIFT_VERSION="v3.11.0"
 
 export MINISHIFT_PROFILE="camel-k"

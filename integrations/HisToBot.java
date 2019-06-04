@@ -85,7 +85,7 @@ public class HisToBot extends RouteBuilder {
                 message += " taken care (" + msgTriggerEvent + ")";
             }
 
-            data.put("message", message);
+            data.put("message", message + " SOLNA");
             data.put("personalId", personalId); // Change to personalId once Telegram Bot is ready
             data.put("patientId", patientId);
 

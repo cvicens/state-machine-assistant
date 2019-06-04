@@ -1,0 +1,23 @@
+1) Run telegram bot locally with ==> ./05-run-telegram-bot.sh
+
+2.1) Use Telegram to signup with ==> /signup 0123456789Z
+2.2) Send a message ==> ./telegram-bot/send-message.sh 0123456789Z http://localhost:8080 
+
+3) Stop it and deploy it in Openshift with: ./09-deploy-telegram-bot.sh
+
+4.1) Use Telegram to signup with ==> /signup 0123456789Z
+4.2) Send a message ==> ./telegram-bot/send-message.sh 0123456789Z http://telegram-bot-health-assistant.apps.serverless-6e97.openshiftworkshop.com 
+
+5) Run his-backend locally with (H2 DB connected to the remote kafka cluster) ==> ./06-run-his-backend.sh
+
+6) Test the backend service with:
+    == get all patients  => curl http://localhost:8080/api/patients
+
+7) Run Camel integration with (connects to the kafka cluster from OCP) => ./07-run-integration.sh
+
+8) End to end test with back-end local and camel integration in dev mode
+    curl -H 'Content-Type: application/json' -X PUT \
+    -d '{"patientId":1,"personalId":"0123456789Z","firstName":"JOHN","lastName":"SMITH","stage":"admission"}' \
+    http://localhost:8080/api/patients/1
+
+9) Stop his-backend and deploy it along with the frontend with => ./10-deploy-his.sh
