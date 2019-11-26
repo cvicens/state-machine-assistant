@@ -1,0 +1,50 @@
+metadata:
+  generateName: state-machine-assistant-
+projects:
+  - name: state-machine-assistant
+    source:
+      location: 'https://github.com/cvicens/state-machine-assistant.git'
+      type: git
+      branch: master
+components:
+  - id: redhat/java/latest
+    memoryLimit: 1512Mi
+    type: chePlugin
+  - id: che-incubator/typescript/latest
+    memoryLimit: 512Mi
+    type: chePlugin
+  - mountSources: true
+    endpoints:
+      - name: 8080/tcp
+        port: 8080
+    memoryLimit: 768Mi
+    type: dockerimage
+    volumes:
+      - name: m2
+        containerPath: /home/user/.m2
+    alias: tools
+    image: 'quay.io/cvicensa/cnw-che-stack:7.4.0-1'
+    env:
+      - value: 'http://nexus.lab-infra:8081/repository/maven-all-public'
+        name: MAVEN_MIRROR_URL
+      - value: /home/user/.m2
+        name: MAVEN_CONFIG
+      - value: >-
+          -XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+          -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
+          -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
+          -Xms20m -Djava.security.egd=file:/dev/./urandom -Duser.home=/home/user
+        name: MAVEN_OPTS
+      - value: >-
+          -XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+          -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
+          -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
+          -Xms20m -Djava.security.egd=file:/dev/./urandom
+        name: JAVA_OPTS
+      - value: >-
+          -XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+          -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
+          -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
+          -Xms20m -Djava.security.egd=file:/dev/./urandom
+        name: JAVA_TOOL_OPTIONS
+apiVersion: 1.0.0
