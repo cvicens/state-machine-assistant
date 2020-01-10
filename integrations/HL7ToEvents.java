@@ -23,7 +23,7 @@ import ca.uhn.hl7v2.parser.Parser;
 import ca.uhn.hl7v2.util.Terser;
 
 
-public class HisToBot extends RouteBuilder {
+public class HL7ToEvents extends RouteBuilder {
   @Override
   public void configure() throws Exception {
     
@@ -90,30 +90,8 @@ public class HisToBot extends RouteBuilder {
         .marshal().json(JsonLibrary.Gson)
         .log("Converting to JSON data: ${body}")
         .convertBodyTo(String.class)
-        .log("Sending message to telegram bot http://{{telegram-bot.host}}:{{telegram-bot.port}}/new-message: ${body}")
-        .to("direct:send-patient-info-to-bot")
-        .log("Patient info sent successfully: ${body}");
-
-    from("direct:send-patient-info-to-bot")
-        .routeId("send-patient-info-to-bot")
-        .removeHeaders("*") // Otherwise you'll probably get a 400 error
-        .setHeader("id", header(Exchange.TIMER_COUNTER))
-        .setHeader(Exchange.HTTP_METHOD, constant("POST"))
-        .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
-        .setHeader(Exchange.HTTP_CHARACTER_ENCODING, constant("UTF-8"))
-        .log("Executing saga #${headers.id} ${body}")
-        .to("http://{{telegram-bot.host}}:{{telegram-bot.port}}/new-message")
-        .log("Patient info sent successfully: ${body}");
+        .log("Sending message ${body} to topic {{kafka.to.topic}}")
+        .to("kafka:{{kafka.to.topic}}?brokers={{kafka.bootstrap-servers}}&groupId={{kafka.groupId}}")
+        .log("Event sent successfully: ${body}");
   }
-
-  public class ChatBotLogic {
-      public String chatBotProcess(String message) {
-          //if( "do-not-reply".equals(message) ) {
-          //    return null; // no response in the chat
-          //}
-          //return "echo from the bot: " + message; // echoes the message
-          return message;
-      }
-  }
-
 }

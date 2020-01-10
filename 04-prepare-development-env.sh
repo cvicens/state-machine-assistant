@@ -3,7 +3,7 @@
 # Environment
 . ./00-environment.sh
 
-cd his-backend/
+cd backend/
 
 oc extract secret/${CLUSTER_NAME}-cluster-ca-cert -n ${PROJECT_NAME} --keys=ca.crt --to=- > src/main/resources/ca.crt
 
@@ -17,3 +17,11 @@ keytool -import -trustcacerts -alias root -file src/main/resources/ca.crt -keyst
 #
 #mvn spring-boot:run -Plocal
 #mvn -Drun.jvmArguments="-Djavax.net.ssl.trustStore=../amq-examples/camel-kafka-demo/src/main/resources/keystore.jks -Djavax.net.ssl.trustStorePassword=password -DKAFKA_SERVICE_HOST=${KAFKA_SERVICE_HOST} -DKAFKA_SERVICE_PORT=${KAFKA_SERVICE_PORT}" clean package spring-boot:run
+
+cd ../frontend
+
+npm install
+
+cd ../telegram-boot
+
+npm install

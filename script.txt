@@ -6,9 +6,9 @@
 3) Stop it and deploy it in Openshift with: ./09-deploy-telegram-bot.sh
 
 4.1) Use Telegram to signup with ==> /signup 0123456789Z
-4.2) Send a message ==> ./telegram-bot/send-message.sh 0123456789Z http://telegram-bot-health-assistant.apps.serverless-6e97.openshiftworkshop.com 
+4.2) Send a message ==> ./telegram-bot/send-message.sh 0123456789Z http://telegram-bot-state-machine-assistant.apps.cluster-kharon-be2a.kharon-be2a.example.opentlc.com 
 
-5) Run his-backend locally with (H2 DB connected to the remote kafka cluster) ==> ./06-run-his-backend.sh
+5) Run backend locally with (H2 DB connected to the remote kafka cluster) ==> ./06-run-backend.sh
 
 6) Test the backend service with:
     == get all patients  => curl http://localhost:8080/api/patients
@@ -20,4 +20,4 @@
     -d '{"patientId":1,"personalId":"0123456789Z","firstName":"JOHN","lastName":"SMITH","stage":"admission"}' \
     http://localhost:8080/api/patients/1
 
-9) Stop his-backend and deploy it along with the frontend with => ./10-deploy-his.sh
+9) Stop backend and deploy it along with the frontend with => ./10-deploy-his.sh

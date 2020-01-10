@@ -2,16 +2,10 @@
 
 export PLATFORM="mac" # linux | mac | windows
 
-export MINISHIFT_VERSION="v3.11.0"
+export PROJECT_NAME="state-machine-assistant"
+export CLUSTER_NAME="state-machine-cluster"
 
-export MINISHIFT_PROFILE="camel-k"
-export MINISHIFT_MEMORY="5GB"
-export MINISHIFT_CPUS="3"
-export MINISHIFT_VM_DRIVER="xhyve" # xhyve | virtualbox | kvm
-export MINISHIFT_DISK_SIZE="50g"
+export HL7_EVENTS_TOPIC_NAME="hl7-events-topic"
+export EVENTS_TOPIC_NAME="events-topic"
 
-export PROJECT_NAME="health-assistant"
-export CLUSTER_NAME="his-cluster"
-export TOPIC_NAME="hl7-events-topic"
-
-export KAMEL_CLIENT_VERSION="0.3.2"
+export KAMEL_CLIENT_VERSION="1.0.0-M4"

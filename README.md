@@ -5,7 +5,7 @@ deploy databases
 Wait until kafka cluster is ready ==> XYZ
 
 Prepare development environment
- - It needs the cluster deployed to get cert and create his-backend/src/main/resources/keystore.jks
+ - It needs the cluster deployed to get cert and create backend/src/main/resources/keystore.jks
 
 
 Use botfather to create your bot
@@ -37,7 +37,7 @@ Run HIS front end in a new terminal
 
 Now you can stop the telegram-bot and deploy it using 09-deploy-... you have to deploy it in order to be reachable fro the camel-k integration which is running 'in' the cluster...
 
-You can make changes to your code in his-backend, his-frontend, integrations...
+You can make changes to your code in backend, frontend, integrations...
 
 Then when you're happy just deploy it all with 10-deploy
 
