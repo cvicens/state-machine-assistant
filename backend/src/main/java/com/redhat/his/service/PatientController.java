@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import com.redhat.his.exception.NotFoundException;
-import com.redhat.his.exception.UnprocessableEntityException;
 import com.redhat.his.exception.UnsupportedMediaTypeException;
 
 import org.springframework.beans.factory.annotation.Autowired;
