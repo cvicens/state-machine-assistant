@@ -11,9 +11,9 @@ function getConfig (fullUrl) {
     if (fullUrl != null) {
         let match = fullUrl.match(/(http.*\:\/\/[^\/]+)\/*/);
         console.debug(`match: ${match}`);
-        if (match != null && match[0] != null) {
-            console.debug(`match[0]: ${match[0]}`);
-            config.API_ENDPOINT = match[0].replace(package.name, DEFAULT_BACKEND_SERVICE);  
+        if (match != null && match[1] != null) {
+            console.debug(`match[1]: ${match[1]}`);
+            config.API_ENDPOINT = match[1].replace(package.name, DEFAULT_BACKEND_SERVICE);  
         }
     }
     
