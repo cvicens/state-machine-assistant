@@ -1,11 +1,18 @@
 package com.redhat.his.service;
 
+import java.time.Duration;
 import java.util.Base64;
+import java.util.Collections;
 
+import javax.annotation.PostConstruct;
+
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -59,9 +66,48 @@ public class EventService {
 	@Autowired
 	Producer<Long, String> producer;
 
+    @Autowired
+	@Qualifier("eventConsumer")
+    Consumer<Long, String> consumer;
+    
     @Value("${kafka.topic}")
 	private String topicName;
 
+    @PostConstruct
+	public void init() {
+		System.out.println(">>> init() with topics = " + topicName);
+		Runnable runnable = () -> {
+			final int giveUp = 100000;
+			int noRecordsCount = 0;
+
+			// Subscribe to Topics
+			consumer.subscribe(Collections.singletonList(topicName));
+
+			while (true) {
+				final ConsumerRecords<Long, String> consumerRecords = consumer.poll(Duration.ofMillis(1000));
+				if (consumerRecords.count() == 0) {
+					noRecordsCount++;
+					if (noRecordsCount > giveUp)
+						break;
+					else
+						continue;
+				}
+				consumerRecords.forEach(record -> {
+					System.out.printf("\n->New message received at EventService! Consumer Record:(%d, %d, %d)\n",
+							record.key(), record.partition(), record.offset());
+					String event = record.value();
+					System.out.println("EVENT: " + event);
+				});
+				consumer.commitAsync();
+			}
+			consumer.close();
+			System.out.println("DONE");
+		};
+
+		Thread thread = new Thread(runnable);
+		thread.start();
+    }
+    
     public String sendEvent(Patient patient, String stage) {
         String messageTemplate = ADT_A04;
         switch(stage) {

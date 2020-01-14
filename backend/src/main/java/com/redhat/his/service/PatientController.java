@@ -47,7 +47,8 @@ public class PatientController {
     private final PatientRepository repository;
 
     @Autowired
-	EventService eventService;
+    EventService eventService;
+    
     public PatientController(PatientRepository repository) {
         this.repository = repository;
     }
@@ -86,7 +87,8 @@ public class PatientController {
         patient.setPatientId(id);
         Patient result = repository.save(patient);
 
-        eventService.sendEvent(patient, patient.getStage());
+        if (patient != null && patient.getStage() != null)
+            eventService.sendEvent(patient, patient.getStage());
 
         return result;
     }

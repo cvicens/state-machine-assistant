@@ -25,8 +25,8 @@ import static org.junit.Assert.assertFalse;
 
 import java.util.Collections;
 
-import com.redhat.his.service.Fruit;
-import com.redhat.his.service.FruitRepository;
+import com.redhat.his.service.Patient;
+import com.redhat.his.service.PatientRepository;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -44,30 +44,33 @@ import io.restassured.specification.RequestSpecification;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BoosterApplicationTest {
 
-    private static final String FRUITS_PATH = "api/fruits";
+    private static final String PATIENTS_PATH = "api/patients";
 
     @Value("${local.server.port}")
     private int port;
 
     @Autowired
-    private FruitRepository fruitRepository;
+    private PatientRepository patientRepository;
 
     @Before
     public void beforeTest() {
-        fruitRepository.deleteAll();
-        RestAssured.baseURI = String.format("http://localhost:%d/" + FRUITS_PATH, port);
+        patientRepository.deleteAll();
+        RestAssured.baseURI = String.format("http://localhost:%d/" + PATIENTS_PATH, port);
     }
 
     @Test
     public void testGetAll() {
-        Fruit cherry = fruitRepository.save(new Fruit("Cherry"));
-        Fruit apple = fruitRepository.save(new Fruit("Apple"));
+        Patient john = patientRepository.save(new Patient("0123456789Z", "JOHN", "SMITH", "idle"));
+        Patient peter = patientRepository.save(new Patient("9876543210W", "PETER", "JONES", "idle"));
         requestSpecification()
                 .get()
                 .then()
                 .statusCode(200)
-                .body("id", hasItems(cherry.getId(), apple.getId()))
-                .body("name", hasItems(cherry.getName(), apple.getName()));
+                .body("patientId", hasItems(john.getPatientId(), peter.getPatientId()))
+                .body("personalId", hasItems(john.getPersonalId(), peter.getPersonalId()))
+                .body("firstName", hasItems(john.getFirstName(), peter.getFirstName()))
+                .body("lastName", hasItems(john.getLastName(), peter.getLastName()))
+                .body("stage", hasItems(john.getStage(), peter.getStage()));
     }
 
     @Test
@@ -81,13 +84,13 @@ public class BoosterApplicationTest {
 
     @Test
     public void testGetOne() {
-        Fruit cherry = fruitRepository.save(new Fruit("Cherry"));
+        Patient john = patientRepository.save(new Patient("0123456789Z", "JOHN", "SMITH", "idle"));
         requestSpecification()
-                .get(String.valueOf(cherry.getId()))
+                .get(String.valueOf(john.getPatientId()))
                 .then()
                 .statusCode(200)
-                .body("id", is(cherry.getId()))
-                .body("name", is(cherry.getName()));
+                .body("patientId", is(john.getPatientId()))
+                .body("personalId", is(john.getPersonalId()));
     }
 
     @Test
@@ -100,25 +103,15 @@ public class BoosterApplicationTest {
 
     @Test
     public void testPost() {
+        Patient john = patientRepository.save(new Patient("0123456789Z", "JOHN", "SMITH", "idle"));
         requestSpecification()
                 .contentType(ContentType.JSON)
-                .body(Collections.singletonMap("name", "Cherry"))
+                .body(john)
                 .post()
                 .then()
                 .statusCode(201)
-                .body("id", not(isEmptyString()))
-                .body("name", is("Cherry"));
-    }
-
-    @Test
-    public void testPostWithWrongPayload() {
-        requestSpecification()
-                .contentType(ContentType.JSON)
-                .body(Collections.singletonMap("id", 0))
-                .when()
-                .post()
-                .then()
-                .statusCode(422);
+                .body("patientId", not(isEmptyString()))
+                .body("personalId", is("0123456789Z"));
     }
 
     @Test
@@ -143,16 +136,16 @@ public class BoosterApplicationTest {
 
     @Test
     public void testPut() {
-        Fruit cherry = fruitRepository.save(new Fruit("Cherry"));
+        Patient john = patientRepository.save(new Patient("0123456789Z", "JOHN", "SMITH", "idle"));
         requestSpecification()
                 .contentType(ContentType.JSON)
-                .body(Collections.singletonMap("name", "Lemon"))
+                .body(Collections.singletonMap("firstName", "DAVID"))
                 .when()
-                .put(String.valueOf(cherry.getId()))
+                .put(String.valueOf(john.getPatientId()))
                 .then()
                 .statusCode(200)
-                .body("id", is(cherry.getId()))
-                .body("name", is("Lemon"));
+                .body("patientId", is(john.getPatientId()))
+                .body("firstName", is("DAVID"));
 
     }
 
@@ -160,7 +153,7 @@ public class BoosterApplicationTest {
     public void testPutNotExisting() {
         requestSpecification()
                 .contentType(ContentType.JSON)
-                .body(Collections.singletonMap("name", "Lemon"))
+                .body(Collections.singletonMap("personalId", "99999999Z"))
                 .when()
                 .put("/0")
                 .then()
@@ -168,47 +161,35 @@ public class BoosterApplicationTest {
     }
 
     @Test
-    public void testPutWithWrongPayload() {
-        Fruit cherry = fruitRepository.save(new Fruit("Cherry"));
-        requestSpecification()
-                .contentType(ContentType.JSON)
-                .body(Collections.singletonMap("id", 0))
-                .when()
-                .put(String.valueOf(cherry.getId()))
-                .then()
-                .statusCode(422);
-    }
-
-    @Test
     public void testPutWithNonJsonPayload() {
-        Fruit cherry = fruitRepository.save(new Fruit("Cherry"));
+        Patient john = patientRepository.save(new Patient("0123456789Z", "JOHN", "SMITH", "idle"));
         requestSpecification()
                 .contentType(ContentType.XML)
                 .when()
-                .put(String.valueOf(cherry.getId()))
+                .put(String.valueOf(john.getPatientId()))
                 .then()
                 .statusCode(415);
     }
 
     @Test
     public void testPutWithEmptyPayload() {
-        Fruit cherry = fruitRepository.save(new Fruit("Cherry"));
+        Patient john = patientRepository.save(new Patient("0123456789Z", "JOHN", "SMITH", "idle"));
         requestSpecification()
                 .contentType(ContentType.JSON)
                 .when()
-                .put(String.valueOf(cherry.getId()))
+                .put(String.valueOf(john.getPatientId()))
                 .then()
                 .statusCode(415);
     }
 
     @Test
     public void testDelete() {
-        Fruit cherry = fruitRepository.save(new Fruit("Cherry"));
+        Patient john = patientRepository.save(new Patient("0123456789Z", "JOHN", "SMITH", "idle"));
         requestSpecification()
-                .delete(String.valueOf(cherry.getId()))
+                .delete(String.valueOf(john.getPatientId()))
                 .then()
                 .statusCode(204);
-        assertFalse(fruitRepository.existsById(cherry.getId()));
+        assertFalse(patientRepository.existsById(john.getPatientId()));
     }
 
     @Test
@@ -221,6 +202,6 @@ public class BoosterApplicationTest {
 
 
     private RequestSpecification requestSpecification() {
-        return given().baseUri(String.format("http://localhost:%d/%s", port, FRUITS_PATH));
+        return given().baseUri(String.format("http://localhost:%d/%s", port, PATIENTS_PATH));
     }
 }
