@@ -433,13 +433,64 @@ Before we can run the integration leyer we need to deploy the Telegram Bot to Op
 
 > **INFO:** This is so, because the integration layer runs in the cluster so it would be required for your local Telegram Bot to be listening in an external IP reachable from the cluster
 
-We're going to deploy our application using [Nodeshift](https://github.com/nodeshift/nodeshift). Nodeshift helps us deploying our NodeJS application from the command line. in order to do that you have to provide minimal information in the shape of YAML descriptors in a folder named `.nodeshift` and being logged in to an OpenShift cluster.
+We're going to deploy our application using [Nodeshift](https://github.com/nodeshift/nodeshift). Nodeshift helps us deploying our NodeJS application from the command line using [Source to image](https://github.com/openshift/source-to-image) behind scenes. in order to do that you have to provide minimal information in the shape of YAML descriptors in a folder named [`.nodeshift`](./telegram-bot/.nodeshift) and being logged in to an OpenShift cluster.
 
 Here's a list of descriptors already prepared for deploying the Telegram Bot:
 
-* 
+* [credentials-secret.yml](./telegram-bot/.nodeshift/credentials-secret.yml) is a proper k8s Secret object containing the database credentials
+* [route.yml](./telegram-bot/.nodeshift/route.yml) is a fragment of a Route object that routes to the Service object
+* [deployment.yml](./telegram-bot/.nodeshift/deployment.yml) is a fragment of a DeploymentConfig object. You'll notice that there are some environment variables there for database host, credentials (pointing the secret mentioned above) and the Telegram token 
 
+Hmm may be you're missing somethings here:
 
+* **Where's the ConfigMap?** It'll be created when you run `./05b-deploy-telegram-bot.sh`
+* **Where are the Service, ImageStream, BuildConfig objects?** Those are inferred by Nodeshift along with the missing pieces when the object is not complete but a fragment as in the case of `deployment.yml`
+
+Now please run this command and provide the Telegram Token you obtained before.
+
+> **INFO:** If you happen to forget the token, you can always go to BotFater and ask him ;-) with `/mybots`
+
+```sh
+$ ./05b-deploy-telegram-bot.sh
+PASTE TOKEN: 782094890:AAGaMcJ8ljTkxfB0mRmzI1g3GRiJNKbSpv4
+USING TOKEN 782094890:AAGaMcJ8ljTkxfB0mRmzI1g3GRiJNKbSpv4 
+> telegram-bot@1.0.0 openshift /Users/cvicensa/Projects/openshift/tap/state-machine-assistant/telegram-bot
+> nodeshift --strictSSL=false --dockerImage=registry.access.redhat.com/rhoar-nodejs/nodejs-10
+
+2020-01-15T11:02:43.945Z INFO loading configuration
+2020-01-15T11:02:43.952Z INFO using namespace state-machine-assistant at https://api.cluster-kharon-be2a.kharon-be2a.example.opentlc.com:6443
+...
+2020-01-15T11:04:07.398Z TRACE npm info ok
+2020-01-15T11:04:07.398Z TRACE 
+...
+2020-01-15T11:04:08.393Z TRACE Getting image source signatures
+2020-01-15T11:04:08.716Z TRACE Copying blob sha256:04dbaef9d44294aedd58690d85eb37e5b57dd98d9e922be36e4ae4e019b21619
+...
+2020-01-15T11:04:09.214Z TRACE Copying config sha256:1e16c354e3774215a388a4a0b94c1376c6f042f3e0965d1c7ac16972de8b7a1c
+2020-01-15T11:04:09.556Z TRACE Writing manifest to image destination
+2020-01-15T11:04:09.559Z TRACE Storing signatures
+2020-01-15T11:04:10.957Z TRACE 1e16c354e3774215a388a4a0b94c1376c6f042f3e0965d1c7ac16972de8b7a1c
+2020-01-15T11:04:14.130Z TRACE 
+2020-01-15T11:04:14.131Z TRACE Pushing image image-registry.openshift-image-registry.svc:5000/state-machine-assistant/telegram-bot:latest ...
+2020-01-15T11:04:14.132Z TRACE Getting image source signatures
+2020-01-15T11:04:14.223Z TRACE Copying blob sha256:5af42566e7d1943de0196a7d22dc5abb18d916ae5cdb762dffd28d305a11ad41
+...
+2020-01-15T11:04:15.572Z TRACE Copying config sha256:1e16c354e3774215a388a4a0b94c1376c6f042f3e0965d1c7ac16972de8b7a1c
+2020-01-15T11:04:16.615Z TRACE Writing manifest to image destination
+2020-01-15T11:04:16.708Z TRACE Storing signatures
+2020-01-15T11:04:16.710Z TRACE Successfully pushed image-registry.openshift-image-registry.svc:5000/state-machine-assistant/telegram-bot@sha256:f49ed9fbd0baf545ccbba03cf6246ba1ef29c647012d049fb3768e817599c9b3
+2020-01-15T11:04:16.719Z TRACE Push successful
+2020-01-15T11:04:19.345Z INFO build telegram-bot-s2i-6 complete
+2020-01-15T11:04:19.392Z INFO openshift.yaml and openshift.json written to /Users/cvicensa/Projects/openshift/tap/state-machine-assistant/telegram-bot/tmp/nodeshift/resource/
+2020-01-15T11:04:19.808Z INFO creating new configMap telegram-bot
+2020-01-15T11:04:19.846Z INFO creating new secret telegram-bot-database-secret
+2020-01-15T11:04:19.849Z INFO creating new service telegram-bot
+2020-01-15T11:04:19.855Z INFO creating new route telegram-bot
+2020-01-15T11:04:19.857Z INFO creating deployment configuration telegram-bot
+2020-01-15T11:04:19.999Z INFO route host mapping telegram-bot-state-machine-assistant.apps.cluster-kharon-be2a.kharon-be2a.example.opentlc.com
+2020-01-15T11:04:20.003Z INFO complete
+
+```
 
 ### HIS Backend
 
@@ -711,13 +762,23 @@ And in 7b you should get:
 [1] 2020-01-14 18:40:20.947 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] send-event-to-bot - Patient info sent successfully: ok
 ```
 
-TODo: Explain the integrations code.
+If in the desktop app you'll see this.
+
+![HIS Backend local test 1](./images/backend-local-test-1.png)
+
+Then in the Telegram App you'll see the message.
+
+![HIS Backend local test 1](./images/backend-local-test-2.png)
+
+So for now we have HIS Backend, running locally, both integrations running in OpenShift (altough we see logs locally) and the Telegram Bot running also in OpenShift.
+
+Next step is to run the frontend locally poining to the backend running also locally.
 
 ### HIS Frontend
 
 This time we have to run a NodeJS application that contains the code of an Angular JS (with Material design) along with a proxy that sends all `/api/patients` requests to `http://localhost:8080/api/patients`.
 
-> **INFO:** The trick is in the script `dev` in `./frontend/package.json` that runs in paralell `client` and `server`. `client` uses `--proxy-config server.conf.js` to set the proxy rules.
+> **INFO:** The trick is in the script `dev` in `./frontend/package.json` that runs in paralell `client` and `server`. `client` uses `--proxy-config server.conf.js` to set the proxy rules. Open [`./run-dev.sh`](./run-dev.sh) and check the line `npm run dev`.
 
 ```sh
 ./08-run-frontend.sh 
@@ -762,48 +823,104 @@ chunk {vendor} vendor.js, vendor.js.map (vendor) 7.09 MB [initial] [rendered]
 
 Now open a browser and point to http://localhost:4200. You should see something like this.
 
+![HIS Frontend local test 1](./images/front-end-local-test-1.png)
 
+Now add a *Reason* and click on `Next` for **Patient PETER JONES (9876543210W)** This way you change the status from `adminssion` to `triage`
 
-===========================
+![HIS Frontend local test 2](./images/front-end-local-test-2.png)
 
-Wait until kafka cluster is ready ==> XYZ
+If you go to he backend terminal you would see something like:
 
-Prepare development environment
- - It needs the cluster deployed to get cert and create backend/src/main/resources/keystore.jks
+```sh
+Record sent to partition 0 with offset 74
+```
 
+On integration 7a:
 
-Use botfather to create your bot
-Run Telegram bot, the script runs postgres with docker just to check locally that everythig works
-Find your bot and start taling to it... try /signup XYZ then /update ZYX, finally /quit
+```sh
+[2] 2020-01-15 11:49:40.131 INFO  [Camel (camel-k) thread #1 - KafkaConsumer[hl7-events-topic]] hl7-to-patient-info - Route started from Telegram
+[2] 2020-01-15 11:49:40.131 INFO  [Camel (camel-k) thread #1 - KafkaConsumer[hl7-events-topic]] hl7-to-patient-info - body: TVNIfF5+XCZ8QURUMXxNQ018TEFCQURUfE1DTXwxOTg4MDgxODExMjZ8U0VDVVJJVFl8QURUXkEwOHxNU0cwMDAwMXxQfDIuNA1FVk58QTA4fDIwMDUwMTEwMDQ1NTAyfHx8fHwNUElEfHwyfDk4NzY1NDMyMTBXfHxKT05FU15QRVRFUnx8MTk2MTA2MTV8TXx8MjEwNi0zfDEyMDAgTiBFTE0gU1RSRUVUXl5HUkVFTlNCT1JPXk5DXjI3NDAxLTEwMjB8R0x8KDkxOSkzNzktMTIxMnwoOTE5KTI3MS0zNDM0fig5MTkpMjc3LTMxMTR8fFN8fDk4NzY1NDMyMTBXNTAwMV4yXk0xMHwxMjM0NTY3ODl8OS04NzY1NF5OQw1QVjF8MXxJfEVSXl5eXl5eQnxVfHx8MzdeTUFSVElORVpeSk9ITl5eXl5eXkFjY01ncl5eXl5DSXx8fDAxfHx8fDF8fHwzN15NQVJUSU5FWl5KT0hOXl5eXl5eQWNjTWdyXl5eXkNJfDJ8NDAwMDc3MTZeXl5BY2NNZ3JeVk58NHx8fHx8fHx8fHx8fHx8fHx8fHwxfHxHfHx8MjAwNTAxMTAwNDUyNTN8fHx8fHwNR1QxfDExMjJ8MTUxOXxKT0hOXkdBVEVTXkENSU4xfDAwMXxBMzU3fDEyMzR8QkNNRHx8fHx8MTMyOTg3DUlOMnxJRDE1NTEwMDF8U1NOMTIzNDU2NzgN
+[2] Encoded Message TVNIfF5+XCZ8QURUMXxNQ018TEFCQURUfE1DTXwxOTg4MDgxODExMjZ8U0VDVVJJVFl8QURUXkEwOHxNU0cwMDAwMXxQfDIuNA1FVk58QTA4fDIwMDUwMTEwMDQ1NTAyfHx8fHwNUElEfHwyfDk4NzY1NDMyMTBXfHxKT05FU15QRVRFUnx8MTk2MTA2MTV8TXx8MjEwNi0zfDEyMDAgTiBFTE0gU1RSRUVUXl5HUkVFTlNCT1JPXk5DXjI3NDAxLTEwMjB8R0x8KDkxOSkzNzktMTIxMnwoOTE5KTI3MS0zNDM0fig5MTkpMjc3LTMxMTR8fFN8fDk4NzY1NDMyMTBXNTAwMV4yXk0xMHwxMjM0NTY3ODl8OS04NzY1NF5OQw1QVjF8MXxJfEVSXl5eXl5eQnxVfHx8MzdeTUFSVElORVpeSk9ITl5eXl5eXkFjY01ncl5eXl5DSXx8fDAxfHx8fDF8fHwzN15NQVJUSU5FWl5KT0hOXl5eXl5eQWNjTWdyXl5eXkNJfDJ8NDAwMDc3MTZeXl5BY2NNZ3JeVk58NHx8fHx8fHx8fHx8fHx8fHx8fHwxfHxHfHx8MjAwNTAxMTAwNDUyNTN8fHx8fHwNR1QxfDExMjJ8MTUxOXxKT0hOXkdBVEVTXkENSU4xfDAwMXxBMzU3fDEyMzR8QkNNRHx8fHx8MTMyOTg3DUlOMnxJRDE1NTEwMDF8U1NOMTIzNDU2NzgN
+IN2|ID1551001|SSN12345678||132987^JOHN^^^^^^AccMgr^^^^CI|||01||||1|||37^MARTINEZ^JOHN^^^^^^AccMgr^^^^CI|2|40007716^^^AccMgr^VN|4|||||||||||||||||||1||G|||20050110045253||||||89|9-87654^NC
+[2] sendingApplication ADT1
+[2] >>> HL7 code: ADT event: A08
+[2] 2020-01-15 11:49:40.141 INFO  [Camel (camel-k) thread #1 - KafkaConsumer[hl7-events-topic]] hl7-to-patient-info - Converting to JSON data: {"personalId":"9876543210W","patientId":"2","message":"Patient PETER JONES with ID(9876543210W) has been updated (A08) in Black Mountain"}
+[2] 2020-01-15 11:49:40.142 INFO  [Camel (camel-k) thread #1 - KafkaConsumer[hl7-events-topic]] hl7-to-patient-info - Sending message {"personalId":"9876543210W","patientId":"2","message":"Patient PETER JONES with ID(9876543210W) has been updated (A08) in Black Mountain"} to topic events-topic
+[2] 2020-01-15 11:49:40.188 INFO  [Camel (camel-k) thread #6 - KafkaProducer[events-topic]] hl7-to-patient-info - Event sent successfully: {"personalId":"9876543210W","patientId":"2","message":"Patient PETER JONES with ID(9876543210W) has been updated (A08) in Black Mountain"}
+```
 
-Run HIS backend in a new terminal
-- runs H2 database so HIS front end will call this version also locally
+On integration 7b:
 
-Run our camel-k integration (run in OCP and connects with kafka using the non secure port 9092) in a new tab
- - should see this -==>   [Camel (camel-k) thread #2 - KafkaConsumer[hl7-events-topic]] Fetcher - [Consumer clientId=consumer-1, groupId=kafkaHisToBotConsumerGroup] Resetting offset for partition hl7-events-topic-1 to offset 0.
+```sh
+[1] 2020-01-15 11:49:40.148 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] events-to-bot - Route started from Kafka Topic events-topic
+[1] 2020-01-15 11:49:40.148 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] events-to-bot - body: {"personalId":"9876543210W","patientId":"2","message":"Patient PETER JONES with ID(9876543210W) has been updated (A08) in Black Mountain"}
+[1] 2020-01-15 11:49:40.148 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] events-to-bot - Sending message to telegram bot http://telegram-bot:tcp://172.30.247.180:8080/new-message: {"personalId":"9876543210W","patientId":"2","message":"Patient PETER JONES with ID(9876543210W) has been updated (A08) in Black Mountain"}
+[1] 2020-01-15 11:49:40.149 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] send-event-to-bot - Executing saga #{CamelHttpCharacterEncoding=UTF-8, CamelHttpMethod=POST, Content-Type=application/json, id=null, kafka.HEADERS=RecordHeaders(headers = [RecordHeader(key = Content-Type, value = [97, 112, 112, 108, 105, 99, 97, 116, 105, 111, 110, 47, 106, 115, 111, 110]), RecordHeader(key = kafka.KEY, value = [0, 0, 0, 0, 0, 0, 0, 4]), RecordHeader(key = kafka.OFFSET, value = [0, 0, 0, 0, 0, 0, 0, 74]), RecordHeader(key = kafka.PARTITION, value = [0, 0, 0, 0]), RecordHeader(key = kafka.TIMESTAMP, value = [0, 0, 1, 111, -87, 9, -88, 34]), RecordHeader(key = kafka.TOPIC, value = [104, 108, 55, 45, 101, 118, 101, 110, 116, 115, 45, 116, 111, 112, 105, 99])], isReadOnly = false), kafka.KEY=[B@7e509dc5, kafka.OFFSET=[B@19228660, kafka.PARTITION=[B@385d4064, kafka.TIMESTAMP=[B@9532a07, kafka.TOPIC=[B@7397305d} {"personalId":"9876543210W","patientId":"2","message":"Patient PETER JONES with ID(9876543210W) has been updated (A08) in Black Mountain"}
+[1] 2020-01-15 11:49:40.251 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] send-event-to-bot - Patient info sent successfully: ok
+[1] 2020-01-15 11:49:40.252 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] events-to-bot - Event sent successfully: 
+```
 
+And hopefully you'll see a notification:
 
-Run HIS front end in a new terminal
-- Open browser at :4200 when you see this ==> [0] [HPM] Proxy created: [ '/server.json' ]  ->  http://localhost:8090
-[0] [HPM] Proxy created: [ '/api/patients', '/api/patients/' ]  ->  http://localhost:8080
-[0] 
-[0] Date: 2019-05-12T15:34:38.088Z
-[0] Hash: 5d47d15fac7ae494bd8f
-[0] Time: 12175ms
-[0] chunk {es2015-polyfills} es2015-polyfills.js, es2015-polyfills.js.map (es2015-polyfills) 284 kB [initial] [rendered]
-[0] chunk {main} main.js, main.js.map (main) 35.1 kB [initial] [rendered]
-[0] chunk {polyfills} polyfills.js, polyfills.js.map (polyfills) 236 kB [initial] [rendered]
-[0] chunk {runtime} runtime.js, runtime.js.map (runtime) 6.08 kB [entry] [rendered]
-[0] chunk {styles} styles.js, styles.js.map (styles) 345 kB [initial] [rendered]
-[0] chunk {vendor} vendor.js, vendor.js.map (vendor) 7.09 MB [initial] [rendered]
-[0] ℹ ｢wdm｣: Compiled successfully.
+![HIS Frontend local test 3](./images/front-end-local-test-3.png)
 
+And the whole message as before:
 
-Now you can stop the telegram-bot and deploy it using 09-deploy-... you have to deploy it in order to be reachable fro the camel-k integration which is running 'in' the cluster...
+![HIS Frontend local test 4](./images/front-end-local-test-4.png)
 
-You can make changes to your code in backend, frontend, integrations...
+So for now we have HIS Frontend and Backend, running locally, both integrations running in OpenShift (altough we see logs locally) and the Telegram Bot running also in OpenShift.
 
-Then when you're happy just deploy it all with 10-deploy
+Next step is to run deploy HIS Frontend and Backend.
 
+## Deploy the remaining components to OpenShift
 
+### Deploying HIS Frontend and Backend
+
+To deploy the frontend, as we did before for the Telegram Bot we're going to use `Nodeshift`, on the other hand for the backend we cannot use Nodeshift because is a Java/Maven app... but no worries we have a similar tool called [Fabric8 Maven Plugin](https://maven.fabric8.io/).
+
+For now just run this command:
+
+```sh
+./10-deploy-frontend-and-backend.sh
+```
+
+Eventually you'll see in `Projects->YOUR_PROJECT->Workloads` something like this:
+
+![Frontend Backend Deployment](./images/frontend-backend-deployment-1.png)
+
+### Deploying Camel Integrations
+
+If prevously we have two script to run the integrations HL7 to Events and Events to Telegram Bot now we only have one `./11-deploy-integration.sh`. The other difference is that we don't want to see the logs locally, so no need for the `--dev` flag any more.
+
+> This is the relevant piece in our script:
+
+```sh
+/kamel run --configmap=hl7-to-events \
+  -d camel-gson -d mvn:ca.uhn.hapi:hapi-base:2.3 -d mvn:ca.uhn.hapi:hapi-structures-v24:2.3 \
+  ./integrations/HL7ToEvents.java
+
+./kamel run --configmap=events-to-bot ./integrations/EventsToTelegramBot.java
+
+```
+
+Now please run the script, your should receive an output like this:
+
+```sh
+./11-deploy-integration.sh 
+integration "hl7to-events" created
+integration "events-to-telegram-bot" created
+```
+
+## Final tests
+
+Now that we have everthing deployed in OpenShift, it's time to do the final test.
+
+We only need the route of our HIS Frontend application, you can get it by running this command:
+
+> You can also use the web console and go to  `Projects->YOUR_PROJECT->Workloads` Click on `frontend` then look for `Resources->Routes`
+
+```sh
+oc get route/frontend -n $PROJECT_NAME 
+```
  
+ Open a browser and change the status of PETER JONES at will, you should expect the same results as before.
