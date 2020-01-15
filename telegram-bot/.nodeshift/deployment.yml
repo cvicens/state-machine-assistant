@@ -16,7 +16,10 @@ spec:
                    name: telegram-bot-database-secret
                    key: password
             - name: TELEGRAM_TOKEN
-              value: 829504574:AAEjoaDiD0118_YFI88g94CI5eIfo7wCnpY
+              valueFrom:
+                configMapKeyRef:
+                  name: telegram-bot
+                  key: token
           readinessProbe:
             httpGet:
               path: /api/health

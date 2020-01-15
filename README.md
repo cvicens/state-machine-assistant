@@ -241,13 +241,528 @@ keytool -delete -alias root -keystore src/main/resources/keystore.jks -storepass
 keytool -import -trustcacerts -alias root -file src/main/resources/ca.crt -keystore src/main/resources/keystore.jks -storepass password -noprompt
 ```
 
-How does the Spring Boot application know how to 
+How does the Spring Boot application know which Keystore use to connect to kafka?
+
+Well, there's a class called `KafkaConfig` that prepares the configuration to connect to Kafka, open file `backend/src/main/java/com/redhat/his/service/KafkaConfig.java` to see how we use `NONE` to exclude some properties when running in OpenShift.
+
+```java
+package com.redhat.his.service;
+
+import java.util.Properties;
+
+...
+
+@Configuration
+public class KafkaConfig {
+	
+	@Value("${kafka.bootstrap-servers}")
+	private String kafkaBrokers;
+	
+	@Value("${kafka.clientId}")
+	private String clientId;
+
+	@Value("${kafka.groupId}")
+	private String groupId;
+
+	@Value("${kafka.topic}")
+	private String topicName;
+
+	@Value("${kafka.security.protocol}")
+	private String securityProtocol;
+	
+	@Value("${kafka.ssl.truststore.location}")
+	private String sslTruststoreLocation;
+
+	@Value("${kafka.ssl.truststore.password}")
+	private String sslTruststorePassword;
+
+	@Value("${kafka.ssl.keystore.location}")
+	private String sslKeystoreLocation;
+
+	@Value("${kafka.ssl.keystore.password}")
+	private String sslKeystorePassword;
+
+	...
+}
+```
+
+Then we have to different profiles `default` and `openshift`, so, when developing we use `default` (application.properties) and when running in OpenShift we use `openshift` (application-opeshift.properties).
+
+Next you can find the relevant properties in the `default` profile.
+
+```properties
+# Kafka Bootstrap Servers => ./06-run-backend.sh sets KAFKA_SERVICE_HOST automatically for local dev.
+kafka.bootstrap-servers=${KAFKA_SERVICE_HOST}:443
+
+# Client and Group
+kafka.clientId	= kafkaClientHisBackend
+kafka.groupId	= kafkaHisBackendConsumerGroup
+
+# Topics
+# kafka.topic		= kafka-clients-demo
+kafka.topic = hl7-events-topic
+
+kafka.security.protocol = SSL
+
 kafka.ssl.truststore.location = src/main/resources/keystore.jks
 kafka.ssl.truststore.password = password
 
 kafka.ssl.keystore.location = src/main/resources/keystore.jks
 kafka.ssl.keystore.password = password
-Later we'll explain 
+```
+
+And this is the `openshift` profile cuonterpart.
+
+```properties
+# Kafka Bootstrap Servers
+kafka.bootstrap-servers=state-machine-cluster-kafka-brokers:9092
+
+# Client and Group
+kafka.clientId	= kafkaClientHisBackend
+kafka.groupId	= kafkaHisBackendConsumerGroup
+
+# Topics
+kafka.topic = hl7-events-topic
+
+kafka.security.protocol = NONE
+
+kafka.ssl.truststore.location = NONE
+kafka.ssl.truststore.password = NONE
+
+kafka.ssl.keystore.location = NONE
+kafka.ssl.keystore.password = NONE
+
+```
+
+The other thing done by `./04-prepare-development-env.sh` is to install all dependencies needed by the Telegram Bot and the HIS Front end, bot Node JS applications.
+
+Now please run this command.
+
+```sh
+./04-prepare-development-env.sh
+```
+
+## Developing our EDA locally
+
+So there are 4 pieces we need to be able to run locally first and then move to our OpenShift cluster, namely:
+
+* Telegram Bot
+* HIS Backend
+* Integrations
+    * HL7 to Events Integration
+    * Events to Telegram Bot Integration
+* HIS Frontend
+
+Let's run them test them one by one
+
+### Telegram Bot
+
+First you need to use BotFather in order to create you Telegram Bot
+
+Go to your Telegram App, here we'll show you haow to do it with the desktop app but it should work in any supported platform.
+
+Look for BotFather.
+
+![BotFather](./images/bot-father-1.png)
+
+Now create a new bot with `/newbot`. Just follow the steps, when done you should receive a token, please copy it.
+
+![BotFather](./images/bot-father-2.png)
+
+Time to paste this token, open `./05a-run-telegram-bot.sh` and paste it when required.
+
+> Run this script in an new terminal window. Be aware that it will use `oc port-forward` to open a tunnel with the database running in OpenShift. By the way this script could also work properly completely local if you uncomment the required lines `Using docker to run a database`.
+
+```sh
+$ . ./00-environment.sh
+$ ./05a-run-telegram-bot.sh 
+PASTE TOKEN: YOUR_TOKEN
+USING TOKEN YOUR_TOKEN
+> telegram-bot@1.0.0 start /Users/cvicensa/Projects/openshift/tap/state-machine-assistant/telegram-bot
+> node app.js
+
+node-telegram-bot-api deprecated Automatic enabling of cancellation of promises is deprecated.
+In the future, you will have to enable it yourself.
+See https://github.com/yagop/node-telegram-bot-api/issues/319. internal/modules/cjs/loader.js:959:30
+DEV: true
+body-parser deprecated bodyParser: use individual json/urlencoded middlewares app.js:21:9
+body-parser deprecated undefined extended: provide extended option node_modules/body-parser/index.js:105:29
+Health Assistant Bot has started. Start conversations in your Telegram.
+Telegram Bot started at: Tue Jan 14 2020 16:06:36 GMT+0100 (Central European Standard Time) on port: 9090
+Error: connect ECONNREFUSED 127.0.0.1:5432
+    at TCPConnectWrap.afterConnect [as oncomplete] (net.js:1129:14) {
+  errno: 'ECONNREFUSED',
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 5432
+}
+Forwarding from 127.0.0.1:5432 -> 5432
+Forwarding from [::1]:5432 -> 5432
+```
+
+Hopefully your Telegram Bot is running in localhost and is connected to PostgreSQL (local or remote). Let's test it.
+
+First, open your Telegram App and look for your bot, in our case `state machin` finds our bot. Second click on `START`
+
+![BotFather](./images/telegram-bot-1.png)
+
+As you can see some help is displayed.
+
+![BotFather](./images/telegram-bot-2.png)
+
+Create a user (in our case user already existed).
+
+```sh
+/signup 9876543210W
+```
+
+![BotFather](./images/telegram-bot-3.png)
+
+Finally send a message and see the result in your Telegram App. Something like `Patient JOHN SMITH with ID(PATID1234) has been admitted (ZZZ)`
+
+```sh
+./telegram-bot/send-message.sh 9876543210W http://localhost:9090
+```
+
+![BotFather](./images/telegram-bot-4.png)
+
+### Deploy the Telegram Bot
+
+Before we can run the integration leyer we need to deploy the Telegram Bot to OpenShift.
+
+> **INFO:** This is so, because the integration layer runs in the cluster so it would be required for your local Telegram Bot to be listening in an external IP reachable from the cluster
+
+We're going to deploy our application using [Nodeshift](https://github.com/nodeshift/nodeshift). Nodeshift helps us deploying our NodeJS application from the command line. in order to do that you have to provide minimal information in the shape of YAML descriptors in a folder named `.nodeshift` and being logged in to an OpenShift cluster.
+
+Here's a list of descriptors already prepared for deploying the Telegram Bot:
+
+* 
+
+
+
+### HIS Backend
+
+Now it's time to run, locally, our Spring Boot HIS API. In order to do so we run [./06-run-backend.sh](./06-run-backend.sh). Open a new terminal and run it:
+
+> **INFO:** This script runs our application which connects to the Kafka topic $HL7_EVENTS_TOPIC. If you're wondering why it connects to the Kafka cluster, the answer is this environment variable KAFKA_SERVICE_HOST. When run locally it's filled with the result of running this command: `=$(oc -n ${PROJECT_NAME} get routes ${CLUSTER_NAME}-kafka-bootstrap -o=jsonpath='{.status.ingress[0].host}{"\n"}')`, when running in OpenShift the value is predefined in `application-openshifr.properties` and equals to `state-machine-cluster-kafka-brokers:9092`. 
+
+```sh
+./06-run-backend.sh
+```
+
+If it all works properly you should get something like this:
+
+```sh
+...
+2020-01-14 19:22:44.229  INFO 80644 --- [  restartedMain] o.a.k.clients.consumer.ConsumerConfig    : ConsumerConfig values: 
+	auto.commit.interval.ms = 5000
+	auto.offset.reset = latest
+	bootstrap.servers = [state-machine-cluster-kafka-bootstrap-state-machine-assistant.apps.cluster-kharon-be2a.kharon-be2a.example.opentlc.com:443]
+	check.crcs = true
+	client.id = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = kafkaHisBackendConsumerGroup
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	isolation.level = read_uncommitted
+	key.deserializer = class org.apache.kafka.common.serialization.LongDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 500
+	metadata.max.age.ms = 300000
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.mechanism = GSSAPI
+	security.protocol = SSL
+	send.buffer.bytes = 131072
+	session.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.1, TLSv1]
+	ssl.endpoint.identification.algorithm = https
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.location = src/main/resources/keystore.jks
+	ssl.keystore.password = [hidden]
+	ssl.keystore.type = JKS
+	ssl.protocol = TLS
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.location = src/main/resources/keystore.jks
+	ssl.truststore.password = [hidden]
+	ssl.truststore.type = JKS
+	value.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+
+2020-01-14 19:22:44.391  INFO 80644 --- [  restartedMain] o.a.kafka.common.utils.AppInfoParser     : Kafka version : 2.0.1
+2020-01-14 19:22:44.391  INFO 80644 --- [  restartedMain] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId : fa14705e51bd2ce5
+>>> init() with topics = hl7-events-topic
+2020-01-14 19:22:44.898  INFO 80644 --- [  restartedMain] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService 'applicationTaskExecutor'
+2020-01-14 19:22:44.953  WARN 80644 --- [  restartedMain] aWebConfiguration$JpaWebMvcConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2020-01-14 19:22:45.024  INFO 80644 --- [       Thread-8] org.apache.kafka.clients.Metadata        : Cluster ID: JiCToAYZTHCDpbNYVyMlKA
+2020-01-14 19:22:45.029  INFO 80644 --- [       Thread-8] o.a.k.c.c.internals.AbstractCoordinator  : [Consumer clientId=consumer-1, groupId=kafkaHisBackendConsumerGroup] Discovered group coordinator state-machine-cluster-kafka-1-state-machine-assistant.apps.cluster-kharon-be2a.kharon-be2a.example.opentlc.com:443 (id: 2147483646 rack: null)
+2020-01-14 19:22:45.038  INFO 80644 --- [  restartedMain] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+2020-01-14 19:22:45.040  INFO 80644 --- [       Thread-8] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-1, groupId=kafkaHisBackendConsumerGroup] Revoking previously assigned partitions []
+2020-01-14 19:22:45.040  INFO 80644 --- [       Thread-8] o.a.k.c.c.internals.AbstractCoordinator  : [Consumer clientId=consumer-1, groupId=kafkaHisBackendConsumerGroup] (Re-)joining group
+2020-01-14 19:22:45.270  INFO 80644 --- [  restartedMain] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 2 endpoint(s) beneath base path '/actuator'
+2020-01-14 19:22:45.340  INFO 80644 --- [  restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port(s): 8080 (http) with context path ''
+2020-01-14 19:22:45.342  INFO 80644 --- [  restartedMain] com.redhat.his.BoosterApplication        : Started BoosterApplication in 6.678 seconds (JVM running for 7.135)
+2020-01-14 19:22:47.966  INFO 80644 --- [       Thread-8] o.a.k.c.c.internals.AbstractCoordinator  : [Consumer clientId=consumer-1, groupId=kafkaHisBackendConsumerGroup] Successfully joined group with generation 102
+2020-01-14 19:22:47.968  INFO 80644 --- [       Thread-8] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-1, groupId=kafkaHisBackendConsumerGroup] Setting newly assigned partitions [hl7-events-topic-0]
+```
+
+Let's run some tests, for instance let's get all the patients in the dabase. Let's remember that when run locally, `default` profile is used and H2 is the database, not PostgreSQL. Please run this command from a different terminal.
+
+```sh
+$ curl http://localhost:8080/api/patients
+[{"patientId":1,"personalId":"0123456789Z","firstName":"JOHN","lastName":"SMITH","stage":"idle"},{"patientId":2,"personalId":"9876543210W","firstName":"PETER","lastName":"JONES","stage":"idle"}]
+```
+
+### The integration layer
+
+The integration layer comprises two Java classes implementing two Camel routes:
+
+* HL7 to Events: which receives HL7 messages, translate them to human readable text and send them to a different topic
+* Events to Telegram Bot: which receives Events and pass them through to the Telegram Bot
+
+Theses are the relevant lines of code of class `HL7ToEvents`
+
+> There is just one route `hl7-to-patient-info` that
+> 1. starts from a kafka topic: `from("kafka:{{kafka.from.topic}}...")`
+> 2. then, sets some catches for exceptions: `.onException(...)`
+> 3. later, it translates from HL7 messages using the good old [HAPI](https://hapifhir.github.io/hapi-hl7v2/) libraries: `.process(exchange -> ...`
+> 4. Finally after some convertion the human readable message is sent to another topic: `.to("kafka:{{kafka.to.topic}}...")`
+
+```java
+import ...
+
+public class HL7ToEvents extends RouteBuilder {
+  @Override
+  public void configure() throws Exception {
+    
+    from("kafka:{{kafka.from.topic}}?brokers={{kafka.bootstrap-servers}}&groupId={{kafka.groupId}}")
+        .routeId("hl7-to-patient-info")
+        .onException(Exception.class)
+            .handled(true)
+            .log(LoggingLevel.ERROR, "Error connecting to server, please check the application.properties file ${exception.message}")
+            .end()
+        .onException(HL7Exception.class)
+            .handled(true)
+            .log(LoggingLevel.ERROR, "Error unmarshalling ${exception.message}")
+            .end()
+        .log("Route started from Telegram")
+        .log("body: ${body}")
+        .process(exchange -> {
+            String encodedMessage = exchange.getIn().getBody(String.class);
+            ...
+            String decodedMessage = new String(decodedBytes);
+            ...
+            HapiContext context = new DefaultHapiContext();
+            ...
+            Message hapiMessage   = p.parse(decodedMessage);
+            
+            Terser terser = new Terser(hapiMessage);
+            
+            String sendingApplication = terser.get("/.MSH-3-1");
+
+            String msgCode = terser.get("/.MSH-9-1");
+            String msgTriggerEvent = terser.get("/.MSH-9-2");
+            ...
+            Map<String, String> data = new HashMap<String, String>();
+            ...
+            data.put("message", message + " in Black Mountain");
+            data.put("personalId", personalId); 
+            data.put("patientId", patientId);
+
+            exchange.getIn().setBody(data);
+        })
+        // marshall to JSON with GSON
+        .marshal().json(JsonLibrary.Gson)
+        .log("Converting to JSON data: ${body}")
+        .convertBodyTo(String.class)
+        .log("Sending message ${body} to topic {{kafka.to.topic}}")
+        .to("kafka:{{kafka.to.topic}}?brokers={{kafka.bootstrap-servers}}&groupId={{kafka.groupId}}")
+        .log("Event sent successfully: ${body}");
+  }
+}
+```
+
+Next you can find the relevant lines of code of the second part of the integration layer, class `EventsToTelegramBot`.
+
+> This integration comprises two routes, the 1st one `events-to-bot` is even simpler:
+> 1. Again it starts from a topic: `from("kafka:{{kafka.from.topic}}...")`
+> 2. Then some exception handling: `.onException(...)`
+> 3. Pass the message to the other route: `.to("direct:send-event-to-bot")`
+
+> The 2nd route `send-event-to-bot`
+> 1. Sets some header to configure the `http` component: `.setHeader(...)`
+> 2. Send the message to the Telegram Bot using the `http` component: `.to("http://{{telegram-bot.host}}:{{telegram-bot.port}}/new-message")`
+
+```java
+import ...
+
+public class EventsToTelegramBot extends RouteBuilder {
+  @Override
+  public void configure() throws Exception {
+    
+    from("kafka:{{kafka.from.topic}}?brokers={{kafka.bootstrap-servers}}&groupId={{kafka.groupId}}")
+        .routeId("events-to-bot")
+        .onException(Exception.class)
+            .handled(true)
+            .log(LoggingLevel.ERROR, "Error connecting to server, please check the application.properties file ${exception.message}")
+            .end()
+        .log("Route started from Kafka Topic {{kafka.from.topic}}")
+        .log("body: ${body}")
+        .log("Sending message to telegram bot http://{{telegram-bot.host}}:{{telegram-bot.port}}/new-message: ${body}")
+        .to("direct:send-event-to-bot")
+        .log("Event sent successfully: ${body}");
+
+    from("direct:send-event-to-bot")
+        .routeId("send-event-to-bot")
+        .setHeader("id", header(Exchange.TIMER_COUNTER))
+        .setHeader(Exchange.HTTP_METHOD, constant("POST"))
+        .setHeader(Exchange.CONTENT_TYPE, constant("application/json"))
+        .setHeader(Exchange.HTTP_CHARACTER_ENCODING, constant("UTF-8"))
+        .log("Executing saga #${headers} ${body}")
+        .to("http://{{telegram-bot.host}}:{{telegram-bot.port}}/new-message")
+        .log("Patient info sent successfully: ${body}");
+  }
+}
+```
+
+Let's run our integrations in two different (additional) terminal windows:
+
+* `07a-run-integration.sh` in charge of translating from HL7 to human readable text events
+* `07b-run-integration.sh` in charge of sending those events to the Telegram Bot
+
+So, please in a different terminal run:
+
+```sh
+$ ./07a-run-integration.sh
+```
+
+And yet in another terminal window, run:
+
+```sh
+$ ./07b-run-integration.sh
+```
+
+Let's run a test that generates a change in the status of a patient:
+
+> **NOTE:** In order for this test to work you should have signed up the personalId. You should have done this before when testing the Telegram Bot.
+
+```sh
+curl -H 'Content-Type: application/json' -X PUT \
+  -d '{"patientId":2,"personalId":"9876543210W","firstName":"PETER","lastName":"JONES","stage":"admission"}' \
+  http://localhost:8080/api/patients/2
+```
+
+If it all works properly no error should be received and a message should be sent to the Telegram App.
+
+In the 7a integration window you should see something like:
+
+```sh
+[1] 2020-01-14 18:40:20.873 INFO  [Camel (camel-k) thread #1 - KafkaConsumer[hl7-events-topic]] hl7-to-patient-info - Route started from Telegram
+[1] 2020-01-14 18:40:20.873 INFO  [Camel (camel-k) thread #1 - KafkaConsumer[hl7-events-topic]] hl7-to-patient-info - body: TVNIfF5+XCZ8QURUMXxNQ018TEFCQURUfE1DTXwxOTg4MDgxODExMjZ8U0VDVVJJVFl8QURUXkEwNHxNU0cwMDAwMXxQfDIuNA1FVk58QTA0fDIwMDUwMTEwMDQ1NTAyfHx8fHwNUElEfHwyfDk4NzY1NDMyMTBXfHxKT05FU15QRVRFUnx8MTk2MTA2MTV8TXx8MjEwNi0zfDEyMDAgTiBFTE0gU1RSRUVUXl5HUkVFTlNCT1JPXk5DXjI3NDAxLTEwMjB8R0x8KDkxOSkzNzktMTIxMnwoOTE5KTI3MS0zNDM0fig5MTkpMjc3LTMxMTR8fFN8fDk4NzY1NDMyMTBXNTAwMV4yXk0xMHwxMjM0NTY3ODl8OS04NzY1NF5OQw1QVjF8MXxJfEVSXl5eXl5eQnxFfHx8MzdeTUFSVElORVpeSk9ITl5eXl5eXkFjY01ncl5eXl5DSXx8fDAxfHx8fDF8fHwzN15NQVJUSU5FWl5KT0hOXl5eXl5eQWNjTWdyXl5eXkNJfDJ8NDAwMDc3MTZeXl5BY2NNZ3JeVk58NHx8fHx8fHx8fHx8fHx8fHx8fHwxfHxHfHx8MjAwNTAxMTAwNDUyNTN8fHx8fHwNQUwxfDF8fF5QRU5JQ0lMTElOfHxQUk9EVUNFUyBISVZFU35SQVNIDUFMMXwyfHxeQ0FUIERBTkRFUg1QUjF8MjIzNHxNMTF8MTExXkNPREUxNTF8Q09NTU9OIFBST0NFRFVSRVN8MTk4ODA5MDgxMTIzDVJPTHw0NV5SRUNPUkRFUl5ST0xFIE1BU1RFUiBMSVNUfEFEfENQfEtBVEVeU01JVEheRUxMRU58MTk5NTA1MDExMjAxDUdUMXwxMTIyfDE1MTl8Sk9ITl5HQVRFU15BDUlOMXwwMDF8QTM1N3wxMjM0fEJDTUR8fHx8fDEzMjk4Nw1JTjJ8SUQxNTUxMDAxfFNTTjEyMzQ1Njc4DQ==
+[1] Encoded Message TVNIfF5+XCZ8QURUMXxNQ018TEFCQURUfE1DTXwxOTg4MDgxODExMjZ8U0VDVVJJVFl8QURUXkEwNHxNU0cwMDAwMXxQfDIuNA1FVk58QTA0fDIwMDUwMTEwMDQ1NTAyfHx8fHwNUElEfHwyfDk4NzY1NDMyMTBXfHxKT05FU15QRVRFUnx8MTk2MTA2MTV8TXx8MjEwNi0zfDEyMDAgTiBFTE0gU1RSRUVUXl5HUkVFTlNCT1JPXk5DXjI3NDAxLTEwMjB8R0x8KDkxOSkzNzktMTIxMnwoOTE5KTI3MS0zNDM0fig5MTkpMjc3LTMxMTR8fFN8fDk4NzY1NDMyMTBXNTAwMV4yXk0xMHwxMjM0NTY3ODl8OS04NzY1NF5OQw1QVjF8MXxJfEVSXl5eXl5eQnxFfHx8MzdeTUFSVElORVpeSk9ITl5eXl5eXkFjY01ncl5eXl5DSXx8fDAxfHx8fDF8fHwzN15NQVJUSU5FWl5KT0hOXl5eXl5eQWNjTWdyXl5eXkNJfDJ8NDAwMDc3MTZeXl5BY2NNZ3JeVk58NHx8fHx8fHx8fHx8fHx8fHx8fHwxfHxHfHx8MjAwNTAxMTAwNDUyNTN8fHx8fHwNQUwxfDF8fF5QRU5JQ0lMTElOfHxQUk9EVUNFUyBISVZFU35SQVNIDUFMMXwyfHxeQ0FUIERBTkRFUg1QUjF8MjIzNHxNMTF8MTExXkNPREUxNTF8Q09NTU9OIFBST0NFRFVSRVN8MTk4ODA5MDgxMTIzDVJPTHw0NV5SRUNPUkRFUl5ST0xFIE1BU1RFUiBMSVNUfEFEfENQfEtBVEVeU01JVEheRUxMRU58MTk5NTA1MDExMjAxDUdUMXwxMTIyfDE1MTl8Sk9ITl5HQVRFU15BDUlOMXwwMDF8QTM1N3wxMjM0fEJDTUR8fHx8fDEzMjk4Nw1JTjJ8SUQxNTUxMDAxfFNTTjEyMzQ1Njc4DQ==
+IN2|ID1551001|SSN12345678||132987AD|CP|KATE^SMITH^ELLEN|199505011201|37^MARTINEZ^JOHN^^^^^^AccMgr^^^^CI|2|40007716^^^AccMgr^VN|4|||||||||||||||||||1||G|||20050110045253||||||89|9-87654^NC
+[1] sendingApplication ADT1
+[1] >>> HL7 code: ADT event: A04
+[1] 2020-01-14 18:40:20.882 INFO  [Camel (camel-k) thread #1 - KafkaConsumer[hl7-events-topic]] hl7-to-patient-info - Converting to JSON data: {"personalId":"9876543210W","patientId":"2","message":"Patient PETER JONES with ID(9876543210W) has been admitted (A04) in Black Mountain"}
+[1] 2020-01-14 18:40:20.882 INFO  [Camel (camel-k) thread #1 - KafkaConsumer[hl7-events-topic]] hl7-to-patient-info - Sending message {"personalId":"9876543210W","patientId":"2","message":"Patient PETER JONES with ID(9876543210W) has been admitted (A04) in Black Mountain"} to topic events-topic
+[1] 2020-01-14 18:40:20.885 INFO  [Camel (camel-k) thread #4 - KafkaProducer[events-topic]] hl7-to-patient-info - Event sent successfully: {"personalId":"9876543210W","patientId":"2","message":"Patient PETER JONES with ID(9876543210W) has been admitted (A04) in Black Mountain"}
+```
+
+And in 7b you should get:
+
+```sh
+[1] 2020-01-14 18:40:20.887 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] events-to-bot - Route started from Kafka Topic events-topic
+[1] 2020-01-14 18:40:20.887 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] events-to-bot - body: {"personalId":"9876543210W","patientId":"2","message":"Patient PETER JONES with ID(9876543210W) has been admitted (A04) in Black Mountain"}
+[1] 2020-01-14 18:40:20.887 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] events-to-bot - Sending message to telegram bot http://telegram-bot:tcp://172.30.27.190:8080/new-message: {"personalId":"9876543210W","patientId":"2","message":"Patient PETER JONES with ID(9876543210W) has been admitted (A04) in Black Mountain"}
+[1] 2020-01-14 18:40:20.888 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] send-event-to-bot - Executing saga #{CamelHttpCharacterEncoding=UTF-8, CamelHttpMethod=POST, Content-Type=application/json, id=null, kafka.HEADERS=RecordHeaders(headers = [RecordHeader(key = Content-Type, value = [97, 112, 112, 108, 105, 99, 97, 116, 105, 111, 110, 47, 106, 115, 111, 110]), RecordHeader(key = kafka.KEY, value = [0, 0, 0, 0, 0, 0, 0, 3]), RecordHeader(key = kafka.OFFSET, value = [0, 0, 0, 0, 0, 0, 0, 39]), RecordHeader(key = kafka.PARTITION, value = [0, 0, 0, 0]), RecordHeader(key = kafka.TIMESTAMP, value = [0, 0, 1, 111, -91, 91, 73, 10]), RecordHeader(key = kafka.TOPIC, value = [104, 108, 55, 45, 101, 118, 101, 110, 116, 115, 45, 116, 111, 112, 105, 99])], isReadOnly = false), kafka.KEY=[B@5f4d6af9, kafka.OFFSET=[B@4e07eea2, kafka.PARTITION=[B@cfb7b1, kafka.TIMESTAMP=[B@20b32797, kafka.TOPIC=[B@149d9bda} {"personalId":"9876543210W","patientId":"2","message":"Patient PETER JONES with ID(9876543210W) has been admitted (A04) in Black Mountain"}
+[1] 2020-01-14 18:40:20.947 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] send-event-to-bot - Patient info sent successfully: ok
+```
+
+TODo: Explain the integrations code.
+
+### HIS Frontend
+
+This time we have to run a NodeJS application that contains the code of an Angular JS (with Material design) along with a proxy that sends all `/api/patients` requests to `http://localhost:8080/api/patients`.
+
+> **INFO:** The trick is in the script `dev` in `./frontend/package.json` that runs in paralell `client` and `server`. `client` uses `--proxy-config server.conf.js` to set the proxy rules.
+
+```sh
+./08-run-frontend.sh 
+
+> frontend@0.0.0 dev /Users/cvicensa/Projects/openshift/tap/state-machine-assistant/frontend
+> npx concurrently --kill-others "npm run client" "npm run server"
+
+[1] 
+[1] > frontend@0.0.0 server /Users/cvicensa/Projects/openshift/tap/state-machine-assistant/frontend
+[1] > npx nodemon server.js
+[1] 
+[0] 
+[0] > frontend@0.0.0 client /Users/cvicensa/Projects/openshift/tap/state-machine-assistant/frontend
+[0] > npx ng serve --proxy-config server.conf.js
+[0] 
+[1] [nodemon] 1.19.0
+[1] [nodemon] to restart at any time, enter `rs`
+[1] [nodemon] watching: *.*
+[1] [nodemon] starting `node server.js`
+[1] App started at: Tue Jan 14 2020 19:42:17 GMT+0100 (Central European Standard Time) on port: 8090
+[0] ** Angular Live Development Server is listening on localhost:4200, open your browser on http://localhost:4200/ **
+[0] [HPM] Proxy created: [ '/server.json' ]  ->  http://localhost:8090
+[0] [HPM] Proxy created: [ '/api/patients', '/api/patients/' ]  ->  http://127.0.0.1:8080
+[0] Browserslist: caniuse-lite is outdated. Please run next command `npm update`
+[0] 
+[0] Date: 2020-01-14T18:42:29.637Z
+[0] Hash: 470ace7d3ce9cda4fcf8
+[0] Time: 9734ms
+[0] chunk {es2015-polyfills} es2015-polyfills.js, es2015-polyfills.js.map (es2015-polyfills) 284 kB [initial] [rendered]
+[0] chunk {main} main.js, main.js.map (main) 35 kB [initial] [rendered]
+[0] chunk {polyfills} polyfills.js, polyfills.js.map (polyfills) 236 kB [initial] [rendered]
+[0] chunk {runtime} runtime.js, runtime.js.map (runtime) 6.08 kB [entry] [rendered]
+[0] chunk {styles} styles.js, styles.js.map (styles) 345 kB [initial] [rendered]
+chunk {vendor} vendor.js, vendor.js.map (vendor) 7.09 MB [initial] [rendered]
+[0] ℹ ｢wdm｣: Compiled successfully.
+[1] fullUrl: http://localhost:4200/server.json
+[1] match: http://localhost:4200/,http://localhost:4200
+[1] match[1]: http://localhost:4200
+[1] config: {"API_ENDPOINT":"http://localhost:4200","SSO_ENABLED":false}
+
+```
+
+Now open a browser and point to http://localhost:4200. You should see something like this.
+
+
 
 ===========================
 
