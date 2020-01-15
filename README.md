@@ -881,7 +881,7 @@ To deploy the frontend, as we did before for the Telegram Bot we're going to use
 For now just run this command:
 
 ```sh
-./10-deploy-frontend-and-backend.sh
+./09-deploy-frontend-and-backend.sh
 ```
 
 Eventually you'll see in `Projects->YOUR_PROJECT->Workloads` something like this:
@@ -890,7 +890,7 @@ Eventually you'll see in `Projects->YOUR_PROJECT->Workloads` something like this
 
 ### Deploying Camel Integrations
 
-If prevously we have two script to run the integrations HL7 to Events and Events to Telegram Bot now we only have one `./11-deploy-integration.sh`. The other difference is that we don't want to see the logs locally, so no need for the `--dev` flag any more.
+If prevously we have two script to run the integrations HL7 to Events and Events to Telegram Bot now we only have one `./10-deploy-integration.sh`. The other difference is that we don't want to see the logs locally, so no need for the `--dev` flag any more.
 
 > This is the relevant piece in our script:
 
@@ -906,7 +906,7 @@ If prevously we have two script to run the integrations HL7 to Events and Events
 Now please run the script, your should receive an output like this:
 
 ```sh
-./11-deploy-integration.sh 
+./10-deploy-integration.sh 
 integration "hl7to-events" created
 integration "events-to-telegram-bot" created
 ```
