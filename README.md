@@ -2,26 +2,26 @@
 
 ## Intro
 
-Some months ago I started playing with [Camel K](https://github.com/apache/camel-k), I instantanly fell in love with it (and I didn't have any previous experience with Camel), easy to deploy fast development, tons of components, you name it. As it usually happens (not just to me, right ;-) ) we tech people try a new good thing and if we love it... we tend to use it everywhere... ok, that was my case, I started to think of crazy scenarios, but one of them stood out and after some refinement ended up being this project.
+Some months ago I started playing with [Camel K](https://github.com/apache/camel-k), I instantanly fell in love with it (and I didn't have any previous experience with Camel), easy to deploy fast development, tons of components, you name it. As it usually happens (not just to me, right ;-) ) we the IT people try a new good thing and if we love it... we tend to use it everywhere... ok, that was my case, I started to think of crazy scenarios, but one of them stood out and after some refinement ended up being this project.
 
-> **NOTE:** Ideally you will read and do and see results... and (hopefully) learn some basics to create your own EDA (Event Driven Application). This lab is not really about creating everything from scratch but more about having an example project up and running and then exploring posibilities while learning.
+> **NOTE:** Ideally you will read and do and see results... and (hopefully) learn some basics to create your own EDA (Event Driven Application). This lab is not really about creating everything from scratch but more about having an example project up and running and then exploring possibilities while learning.
 
 ### The idea
 
-The idea came to me after remembering how many times I had to go with my youngest daugher to the Emergency Room (nothing serious but recurrent) and all those times waiting for results, moving to the next stage and informing my wife (who was with my other daughter). Wouldn't if be nice to receive a message to my Telegram App everytime the state of the patient changes? Well, that's the aim of this project: serving as an example EDA (Event Driven Application) running on Kubernetes/OpenShift that sends out notifications via a Telegram Bot whenever the state/status of a patient changes.
+The idea came to me after remembering how many times I had to go with my youngest daughter to the Emergency Room (nothing serious but recurrent) and all those times waiting for results, moving to the next stage and informing my wife (who was with my other daughter). Wouldn't if be nice to receive a message to my Telegram App everytime the state of the patient changes? Well, that's the aim of this project: serving as an example EDA (Event Driven Application) running on Kubernetes/OpenShift that sends out notifications via a Telegram Bot whenever the state/status of a patient changes.
 
-In order to give our example EDA a bit more of (ficticious) context, let's imagine there's a Health Information System (HIS) at a hospital called Black Moutain Hospital. This application has a UI where you can change the status of a patient and everytime a change happens a proper HL7 message is sent.
+In order to give our example EDA a bit more of (fictitious) context, let's imagine there's a Health Information System (HIS) at a hospital called Black Mountain Hospital. This application has a UI where you can change the status of a patient and every time a change happens a proper HL7 message is sent.
 
-> **NOTE:** this is an over simplified HIS, please health related profesionals don't get too mad at me, I know how complex a real HIS is ;-)
+> **NOTE:** this is an over simplified HIS, please health related professionals don't get too mad at me, I know how complex a real HIS is ;-)
 
-The scenario protrayed by this example application of the **ficticious Black Mountain Hospital** comprises these elements:
+The scenario portrayed by this example application of the **fictitious Black Mountain Hospital** comprises these elements:
 
 * **HIS frontend (Angular JS)** where you can change the status of a patient
 * **HIS backend (Spring Boot REST API)** exposing the patient info API, data is persisted in a PostgreSQL Database. This piece sends out HL7 messages to a Kafka topic
 * **Integration layer (Camel K)** that translates HL7 events to plain events you can send to a human
 * **Telegram Bot (Node JS)** where you can signup with your ID, again data is persisted in a PostgreSQL Database
 
-## Prerequistes
+## Prerequisites
 
 You need access to an OpenShift 4.2+ cluster and be cluster-admin (or request your administrator to install a couple of elements for you). You can also run  your own local 4.x cluster using [CodeReady Containers](https://code-ready.github.io/crc/).
 
@@ -76,7 +76,7 @@ Now you could start creating custom resources managed by the AMQ Streams Operato
 
 ### Deploying the Camel K Operator
 
-As we have exmplained before we need a couple of Camel integrations; to translate HL7 messages coming in to a Kafka topic and another one to send those translated messages to a Telegram Bot. Well, in order to run this Camel integrations (routes) we can do it mannually in a Java project, or use Camel K. For all the reasons mentiones before and more we're going to use an operator the `Camel K Operator`.
+As we have explained before we need a couple of Camel integrations; to translate HL7 messages coming in to a Kafka topic and another one to send those translated messages to a Telegram Bot. Well, in order to run this Camel integrations (routes) we can do it manually in a Java project, or use Camel K. For all the reasons mentions before and more we're going to use an operator the `Camel K Operator`.
 
 > **WARNING:** This task should be run by a cluster administrator
 
@@ -115,7 +115,7 @@ As we mentioned before we need a couple of Topics, one for HL7 events and anothe
 
 We have prepared a set of numbered shell scripts, please have a look to the one numbered `00` where some base environment variables are set. You may need to change the project name to be sure it's unique in your cluster...
 
-Set the environment any time by doing this. Please run the next command, we'll need to use $PROJECT_NAME environemt variable later:
+Set the environment any time by doing this. Please run the next command, we'll need to use $PROJECT_NAME environment variable later:
 
 ```sh
 . ./00-environment.sh
@@ -129,7 +129,7 @@ In this step we will run `./01-deploy-kafka.sh`, please have a look to this scri
 oc new-project ${PROJECT_NAME}
 ```
 
-> **<span style="color:red">IMPORTANT:</span>** if you run the scripts in order (and you don't create another project in between), the default project will be automatically set to the project create, that is the one set by $PROJECT_NAME environment varible, see `00-environment.sh`. If you have created another project or just want to be sure the default project is set correctly, please use: `oc project`. If you need to set the default project back to $PROJECT_NAME do this: `. ./00-environment.sh && oc project $PROJECT_NAME` 
+> **<span style="color:red">IMPORTANT:</span>** if you run the scripts in order (and you don't create another project in between), the default project will be automatically set to the project create, that is the one set by $PROJECT_NAME environment variable, see `00-environment.sh`. If you have created another project or just want to be sure the default project is set correctly, please use: `oc project`. If you need to set the default project back to $PROJECT_NAME do this: `. ./00-environment.sh && oc project $PROJECT_NAME` 
 
 **Second**, it also creates a Custom Resource (CR) of type `Kafka` that defines a Kafka cluster with 3 replicas, three listeners, plain, secure and https based (external). And a couple of CRs of type `KafkaTopic` for each of the kafka topics we need.
 
@@ -299,7 +299,6 @@ kafka.clientId	= kafkaClientHisBackend
 kafka.groupId	= kafkaHisBackendConsumerGroup
 
 # Topics
-# kafka.topic		= kafka-clients-demo
 kafka.topic = hl7-events-topic
 
 kafka.security.protocol = SSL
@@ -429,7 +428,7 @@ Finally send a message and see the result in your Telegram App. Something like `
 
 ### Deploy the Telegram Bot
 
-Before we can run the integration leyer we need to deploy the Telegram Bot to OpenShift.
+Before we can run the integration layer we need to deploy the Telegram Bot to OpenShift.
 
 > **INFO:** This is so, because the integration layer runs in the cluster so it would be required for your local Telegram Bot to be listening in an external IP reachable from the cluster
 
@@ -439,11 +438,11 @@ Here's a list of descriptors already prepared for deploying the Telegram Bot:
 
 * [credentials-secret.yml](./telegram-bot/.nodeshift/credentials-secret.yml) is a proper k8s Secret object containing the database credentials
 * [route.yml](./telegram-bot/.nodeshift/route.yml) is a fragment of a Route object that routes to the Service object
-* [deployment.yml](./telegram-bot/.nodeshift/deployment.yml) is a fragment of a DeploymentConfig object. You'll notice that there are some environment variables there for database host, credentials (pointing the secret mentioned above) and the Telegram token 
+* [deployment.yml](./telegram-bot/.nodeshift/deployment.yml) is a fragment of a DeploymentConfig object. You'll notice that there are some *environment variables* there *for database host* (literal, hardcoded), *credentials* (value comes from the secret mentioned above) and the *Telegram token* (value refers to a ConfigMap).
 
-Hmm may be you're missing somethings here:
+Hmm may be you've notice some things are missing here:
 
-* **Where's the ConfigMap?** It'll be created when you run `./05b-deploy-telegram-bot.sh`
+* **Where's the ConfigMap to get the token from?** It'll be created when you run `./05b-deploy-telegram-bot.sh`
 * **Where are the Service, ImageStream, BuildConfig objects?** Those are inferred by Nodeshift along with the missing pieces when the object is not complete but a fragment as in the case of `deployment.yml`
 
 Now please run this command and provide the Telegram Token you obtained before.
@@ -452,8 +451,8 @@ Now please run this command and provide the Telegram Token you obtained before.
 
 ```sh
 $ ./05b-deploy-telegram-bot.sh
-PASTE TOKEN: 782094890:AAGaMcJ8ljTkxfB0mRmzI1g3GRiJNKbSpv4
-USING TOKEN 782094890:AAGaMcJ8ljTkxfB0mRmzI1g3GRiJNKbSpv4 
+PASTE TOKEN: YOUR_TOKEN
+USING TOKEN YOUR_TOKEN 
 > telegram-bot@1.0.0 openshift /Users/cvicensa/Projects/openshift/tap/state-machine-assistant/telegram-bot
 > nodeshift --strictSSL=false --dockerImage=registry.access.redhat.com/rhoar-nodejs/nodejs-10
 
@@ -610,7 +609,7 @@ Theses are the relevant lines of code of class `HL7ToEvents`
 > 1. starts from a kafka topic: `from("kafka:{{kafka.from.topic}}...")`
 > 2. then, sets some catches for exceptions: `.onException(...)`
 > 3. later, it translates from HL7 messages using the good old [HAPI](https://hapifhir.github.io/hapi-hl7v2/) libraries: `.process(exchange -> ...`
-> 4. Finally after some convertion the human readable message is sent to another topic: `.to("kafka:{{kafka.to.topic}}...")`
+> 4. finally after some convertion the human readable message is sent to another topic: `.to("kafka:{{kafka.to.topic}}...")`
 
 ```java
 import ...
@@ -770,9 +769,9 @@ Then in the Telegram App you'll see the message.
 
 ![HIS Backend local test 1](./images/backend-local-test-2.png)
 
-So for now we have HIS Backend, running locally, both integrations running in OpenShift (altough we see logs locally) and the Telegram Bot running also in OpenShift.
+So for now we have HIS Backend, running locally, both integrations running in OpenShift (although we see logs locally) and the Telegram Bot running also in OpenShift.
 
-Next step is to run the frontend locally poining to the backend running also locally.
+Next step is to run the frontend locally pointing to the backend running also locally.
 
 ### HIS Frontend
 
@@ -868,7 +867,7 @@ And the whole message as before:
 
 ![HIS Frontend local test 4](./images/front-end-local-test-4.png)
 
-So for now we have HIS Frontend and Backend, running locally, both integrations running in OpenShift (altough we see logs locally) and the Telegram Bot running also in OpenShift.
+So for now we have HIS Frontend and Backend, running locally, both integrations running in OpenShift (although we see logs locally) and the Telegram Bot running also in OpenShift.
 
 Next step is to run deploy HIS Frontend and Backend.
 
@@ -890,7 +889,7 @@ Eventually you'll see in `Projects->YOUR_PROJECT->Workloads` something like this
 
 ### Deploying Camel Integrations
 
-If prevously we have two script to run the integrations HL7 to Events and Events to Telegram Bot now we only have one `./10-deploy-integration.sh`. The other difference is that we don't want to see the logs locally, so no need for the `--dev` flag any more.
+If previously we have two script to run the integrations HL7 to Events and Events to Telegram Bot now we only have one `./10-deploy-integration.sh`. The other difference is that we don't want to see the logs locally, so no need for the `--dev` flag any more.
 
 > This is the relevant piece in our script:
 
@@ -913,7 +912,7 @@ integration "events-to-telegram-bot" created
 
 ## Final tests
 
-Now that we have everthing deployed in OpenShift, it's time to do the final test.
+Now that we have everything deployed in OpenShift, it's time to do the final test.
 
 We only need the route of our HIS Frontend application, you can get it by running this command:
 
