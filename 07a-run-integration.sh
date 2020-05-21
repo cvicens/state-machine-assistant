@@ -24,4 +24,4 @@ EOF
 
 ./kamel run --configmap=hl7-to-events \
   -d camel-gson -d mvn:ca.uhn.hapi:hapi-base:2.3 -d mvn:ca.uhn.hapi:hapi-structures-v24:2.3 \
-  ./integrations/HL7ToEvents.java --dev
+  ./integrations/HL7ToEvents.java --dev -n ${PROJECT_NAME}

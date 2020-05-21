@@ -107,6 +107,26 @@ Wait until `Status` changes to `InstallSucceeded`, if that is the case you have 
 
 Now you could start creating custom resources managed by the `Camel K Operator`, such as `Integration`, `Build`, etc.
 
+### Getting the sources
+
+Here you have two options, you can just `git clone` or use CodeReady Workspaces.
+
+If you have access to a CRW cluster just compose a URL like this:
+
+```
+<YOUR CRW CLUSTER URL>/f?url=https://github.com/cvicens/state-machine-assistant
+```
+
+### Change to the sources folders
+
+Either on CRW or not you have to be in (or open a) terminal and.
+
+> **NOTE:** If on CRW you can use `${CHE_PROJECTS_ROOT}/state-machine-assistant`
+
+```
+cd ./state-machine-assistant
+```
+
 ### Deploying Kafka using the AMQ Streams Operator
 
 As we mentioned before we need a couple of Topics, one for HL7 events and another one for translated events... and of course we need a Kafka cluster to support them.
@@ -589,6 +609,10 @@ If it all works properly you should get something like this:
 2020-01-14 19:22:47.968  INFO 80644 --- [       Thread-8] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-1, groupId=kafkaHisBackendConsumerGroup] Setting newly assigned partitions [hl7-events-topic-0]
 ```
 
+> **<span style="color:blue">IMPORTANT CRW:</span>** If you're running the lab on CRW you should see a pop up asking you to expose port `8080`, say yes. Then it will ask you to open a link, say yes again and copy the URL. 
+
+![Open Link](./images/crw-open-link.png)
+
 Let's run some tests, for instance let's get all the patients in the dabase. Let's remember that when run locally, `default` profile is used and H2 is the database, not PostgreSQL. Please run this command from a different terminal.
 
 ```sh
@@ -775,9 +799,15 @@ Next step is to run the frontend locally pointing to the backend running also lo
 
 ### HIS Frontend
 
-This time we have to run a NodeJS application that contains the code of an Angular JS (with Material design) along with a proxy that sends all `/api/patients` requests to `http://localhost:8080/api/patients`.
+This time we have to run a NodeJS application that contains the code of an Angular App (with Material design).
+
+Here we have a different approach if you're using [CodeReady Workspaces - CRW](https://developers.redhat.com/products/codeready-workspaces/overview) or not.
+
+#### If you're not using CRW
 
 > **INFO:** The trick is in the script `dev` in `./frontend/package.json` that runs in paralell `client` and `server`. `client` uses `--proxy-config server.conf.js` to set the proxy rules. Open [`./run-dev.sh`](./run-dev.sh) and check the line `npm run dev`.
+
+Run the following script and you'll have the Angular App running in development mode on port `4200` proxying requests to `/api/patients` to the `backend` (port `8080`) and also proxies requests to `/server.json` to `8090`, hence this command also changes the port of the Node JS to avoid colliding with `backend`.
 
 ```sh
 ./08-run-frontend.sh 
@@ -820,7 +850,39 @@ chunk {vendor} vendor.js, vendor.js.map (vendor) 7.09 MB [initial] [rendered]
 
 ```
 
-Now open a browser and point to http://localhost:4200. You should see something like this.
+#### If on the contrary you're running this lab on CRW
+
+We are going to run the Node JS application directly using `npm start` but before we do we need to prepare the environment and compile the TypeScript code (the actual Angular code you know...)
+
+Let's build the Angular code.
+
+```
+cd ${$CHE_PROJECTS_ROOT}/state-machine-assistant/frontend
+
+npm run build
+```
+Let's set the environment properly...
+
+> **<span style="color:blue">IMPORTANT CRW:</span>** Do you remember the URL exposing the `backend` api? If you don't look for `IMPORTANT CRW`. Well we need to point the UI to the `backend` API running in CRW so do the following only that changing the ugly text by the proper URL *without the ending back slash*.
+
+```
+export GW_ENDPOINT=<PASTE THE BACKEND URL HERE>
+export HIS_FRONTEND_CUSTOM_PORT=8090
+```
+
+Finally let's run the application.
+
+```
+npm start
+```
+
+> **<span style="color:blue">IMPORTANT CRW:</span>** Again if running on CRW you'll be asked to expose and open a link. Please click on 
+
+![Expose frontend on CRW](./images/crw-expose-frontend.png)
+
+![Open link to frontend on CRW](./images/crw-open-link-frontend.png)
+
+Now open a browser and point to http://localhost:4200. You should see something like this. (Or if on CRW you just did by saying yes...)
 
 ![HIS Frontend local test 1](./images/front-end-local-test-1.png)
 

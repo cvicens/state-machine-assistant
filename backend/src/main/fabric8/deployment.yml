@@ -7,6 +7,8 @@ spec:
     spec:
       containers:
         - env:
+            - name: CLUSTER_NAME
+              value: ${env.CLUSTER_NAME}
             - name: DB_HOST
               value: backend-database
             - name: DB_USERNAME

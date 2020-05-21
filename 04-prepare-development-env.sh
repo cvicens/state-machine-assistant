@@ -14,6 +14,6 @@ cd ../frontend
 
 npm install
 
-cd ../telegram-boot
+cd ../telegram-bot
 
 npm install

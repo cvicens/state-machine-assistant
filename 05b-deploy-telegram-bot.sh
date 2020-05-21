@@ -32,3 +32,12 @@ EOF
 # Deploy telegram-bot
 cd ${CURRENT_DIR}/telegram-bot/
 npm run openshift
+
+# Labels
+oc label dc/telegram-bot app.openshift.io/runtime=nodejs --overwrite -n ${PROJECT_NAME} && \
+oc label dc/telegram-bot app.kubernetes.io/part-of=${APP_NAME} -n ${PROJECT_NAME} --overwrite
+
+oc annotate dc/telegram-bot app.openshift.io/connects-to=telegram-bot-database --overwrite -n ${PROJECT_NAME} && \
+oc annotate dc/telegram-bot app.openshift.io/vcs-uri=https://github.com/cvicens/state-machine-assistant.git --overwrite -n ${PROJECT_NAME} && \
+oc annotate dc/telegram-bot app.openshift.io/vcs-ref=master --overwrite -n ${PROJECT_NAME}
+

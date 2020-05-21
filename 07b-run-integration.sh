@@ -22,4 +22,4 @@ data:
 EOF
 
 ./kamel run --configmap=events-to-bot \
-  ./integrations/EventsToTelegramBot.java --dev
+  ./integrations/EventsToTelegramBot.java --dev -n ${PROJECT_NAME}
