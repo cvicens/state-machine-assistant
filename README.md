@@ -111,7 +111,7 @@ Now you could start creating custom resources managed by the `Camel K Operator`,
 
 Here you have two options, you can just `git clone` or use CodeReady Workspaces.
 
-If you have access to a CRW cluster just compose a URL like this:
+If you have access to a [CodeReady Workspaces (CRW)](https://developers.redhat.com/products/codeready-workspaces/overview) cluster just compose a URL like this:
 
 ```
 <YOUR CRW CLUSTER URL>/f?url=https://github.com/cvicens/state-machine-assistant
