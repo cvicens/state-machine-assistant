@@ -787,6 +787,8 @@ IN2|ID1551001|SSN12345678||132987AD|CP|KATE^SMITH^ELLEN|199505011201|37^MARTINEZ
 
 And in 7b you should get:
 
+> **<span style="color:red">WARNING:</span>** If you get "org.apache.camel.http.common.HttpOperationFailedException: HTTP operation failed invoking http://172.30.88.135:8080/new-message with statusCode: 404" then you have to `/signup 9876543210W` again!
+
 ```sh
 [1] 2020-01-14 18:40:20.887 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] events-to-bot - Route started from Kafka Topic events-topic
 [1] 2020-01-14 18:40:20.887 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] events-to-bot - body: {"personalId":"9876543210W","patientId":"2","message":"Patient PETER JONES with ID(9876543210W) has been admitted (A04) in Black Mountain"}
