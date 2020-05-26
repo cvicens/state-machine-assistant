@@ -2,7 +2,7 @@
 
 export PLATFORM="linux" # linux | mac | windows
 
-export PROJECT_NAME="user1-state-machine-assistant"
+export PROJECT_NAME="userXX-sma"
 export CLUSTER_NAME="sma-cluster"
 
 export HL7_EVENTS_TOPIC_NAME="hl7-events-topic"

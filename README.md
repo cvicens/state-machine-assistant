@@ -170,22 +170,22 @@ To monitor the status of the deployment you can run the next command.
 > As you can see, there are 3 replicas both for the kafka cluster and for the zookeeper cluster, all of them are running.
 
 ```sh
-$ oc get pod -n $PROJECT_NAME | grep state-machine-cluster
-state-machine-cluster-entity-operator-55d6f79ccf-dckht   3/3     Running     16         5d15h
-state-machine-cluster-kafka-0                            2/2     Running     11         5d15h
-state-machine-cluster-kafka-1                            2/2     Running     11         5d15h
-state-machine-cluster-kafka-2                            2/2     Running     11         5d15h
-state-machine-cluster-zookeeper-0                        2/2     Running     8          5d15h
-state-machine-cluster-zookeeper-1                        2/2     Running     8          5d15h
-state-machine-cluster-zookeeper-2                        2/2     Running     8          5d15h
+$ oc get pod -n $PROJECT_NAME | grep sma-cluster
+sma-cluster-entity-operator-55d6f79ccf-dckht   3/3     Running     16         5d15h
+sma-cluster-kafka-0                            2/2     Running     11         5d15h
+sma-cluster-kafka-1                            2/2     Running     11         5d15h
+sma-cluster-kafka-2                            2/2     Running     11         5d15h
+sma-cluster-zookeeper-0                        2/2     Running     8          5d15h
+sma-cluster-zookeeper-1                        2/2     Running     8          5d15h
+sma-cluster-zookeeper-2                        2/2     Running     8          5d15h
 ```
 
 Another test you can run, this one to check if our topics were created properly.
 
 ```sh
-$ oc rsh -n $PROJECT_NAME state-machine-cluster-kafka-0 bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+$ oc rsh -n $PROJECT_NAME sma-cluster-kafka-0 bin/kafka-topics.sh --list --bootstrap-server localhost:9092
 Defaulting container name to kafka.
-Use 'oc describe pod/state-machine-cluster-kafka-0 -n state-machine-assistant' to see all of the containers in this pod.
+Use 'oc describe pod/sma-cluster-kafka-0 -n state-machine-assistant' to see all of the containers in this pod.
 OpenJDK 64-Bit Server VM warning: If the number of processors is expected to increase from one, then you should configure the number of parallel GC threads appropriately using -XX:ParallelGCThreads=N
 __consumer_offsets
 events-topic
@@ -334,7 +334,7 @@ And this is the `openshift` profile cuonterpart.
 
 ```properties
 # Kafka Bootstrap Servers
-kafka.bootstrap-servers=state-machine-cluster-kafka-brokers:9092
+kafka.bootstrap-servers=sma-cluster-kafka-brokers:9092
 
 # Client and Group
 kafka.clientId	= kafkaClientHisBackend
@@ -515,7 +515,7 @@ USING TOKEN YOUR_TOKEN
 
 Now it's time to run, locally, our Spring Boot HIS API. In order to do so we run [./06-run-backend.sh](./06-run-backend.sh). Open a new terminal and run it:
 
-> **INFO:** This script runs our application which connects to the Kafka topic $HL7_EVENTS_TOPIC. If you're wondering why it connects to the Kafka cluster, the answer is this environment variable KAFKA_SERVICE_HOST. When run locally it's filled with the result of running this command: `=$(oc -n ${PROJECT_NAME} get routes ${CLUSTER_NAME}-kafka-bootstrap -o=jsonpath='{.status.ingress[0].host}{"\n"}')`, when running in OpenShift the value is predefined in `application-openshifr.properties` and equals to `state-machine-cluster-kafka-brokers:9092`. 
+> **INFO:** This script runs our application which connects to the Kafka topic $HL7_EVENTS_TOPIC. If you're wondering why it connects to the Kafka cluster, the answer is this environment variable KAFKA_SERVICE_HOST. When run locally it's filled with the result of running this command: `=$(oc -n ${PROJECT_NAME} get routes ${CLUSTER_NAME}-kafka-bootstrap -o=jsonpath='{.status.ingress[0].host}{"\n"}')`, when running in OpenShift the value is predefined in `application-openshifr.properties` and equals to `sma-cluster-kafka-brokers:9092`. 
 
 ```sh
 ./06-run-backend.sh
@@ -528,7 +528,7 @@ If it all works properly you should get something like this:
 2020-01-14 19:22:44.229  INFO 80644 --- [  restartedMain] o.a.k.clients.consumer.ConsumerConfig    : ConsumerConfig values: 
 	auto.commit.interval.ms = 5000
 	auto.offset.reset = latest
-	bootstrap.servers = [state-machine-cluster-kafka-bootstrap-state-machine-assistant.apps.cluster-kharon-be2a.kharon-be2a.example.opentlc.com:443]
+	bootstrap.servers = [sma-cluster-kafka-bootstrap-state-machine-assistant.apps.cluster-kharon-be2a.kharon-be2a.example.opentlc.com:443]
 	check.crcs = true
 	client.id = 
 	connections.max.idle.ms = 540000
@@ -598,7 +598,7 @@ If it all works properly you should get something like this:
 2020-01-14 19:22:44.898  INFO 80644 --- [  restartedMain] o.s.s.concurrent.ThreadPoolTaskExecutor  : Initializing ExecutorService 'applicationTaskExecutor'
 2020-01-14 19:22:44.953  WARN 80644 --- [  restartedMain] aWebConfiguration$JpaWebMvcConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
 2020-01-14 19:22:45.024  INFO 80644 --- [       Thread-8] org.apache.kafka.clients.Metadata        : Cluster ID: JiCToAYZTHCDpbNYVyMlKA
-2020-01-14 19:22:45.029  INFO 80644 --- [       Thread-8] o.a.k.c.c.internals.AbstractCoordinator  : [Consumer clientId=consumer-1, groupId=kafkaHisBackendConsumerGroup] Discovered group coordinator state-machine-cluster-kafka-1-state-machine-assistant.apps.cluster-kharon-be2a.kharon-be2a.example.opentlc.com:443 (id: 2147483646 rack: null)
+2020-01-14 19:22:45.029  INFO 80644 --- [       Thread-8] o.a.k.c.c.internals.AbstractCoordinator  : [Consumer clientId=consumer-1, groupId=kafkaHisBackendConsumerGroup] Discovered group coordinator sma-cluster-kafka-1-state-machine-assistant.apps.cluster-kharon-be2a.kharon-be2a.example.opentlc.com:443 (id: 2147483646 rack: null)
 2020-01-14 19:22:45.038  INFO 80644 --- [  restartedMain] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
 2020-01-14 19:22:45.040  INFO 80644 --- [       Thread-8] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-1, groupId=kafkaHisBackendConsumerGroup] Revoking previously assigned partitions []
 2020-01-14 19:22:45.040  INFO 80644 --- [       Thread-8] o.a.k.c.c.internals.AbstractCoordinator  : [Consumer clientId=consumer-1, groupId=kafkaHisBackendConsumerGroup] (Re-)joining group
@@ -749,6 +749,16 @@ And yet in another terminal window, run:
 $ ./07b-run-integration.sh
 ```
 
+> **NOTE:** you have to wait until the integrations are up and running! During the building phase you will see traces like the next ones, wait until you see `Integration "XYZ" in phase Running`:
+> ```
+> Integration hl7to-events dependent resource kit-br6bq0eue9ho5tj017mg (Build) changed phase to Scheduling
+> Integration hl7to-events dependent resource kit-br6bq0eue9ho5tj017mg (Build) changed phase to Pending
+> Integration hl7to-events dependent resource kit-br6bq0eue9ho5tj017mg (Build) changed phase to Running
+> Integration hl7to-events dependent resource kit-br6bq0eue9ho5tj017mg (Integration Kit) changed phase to Build Running
+> Integration hl7to-events dependent resource kit-br6bq0eue9ho5tj017mg (Build) changed phase to Succeeded
+> Integration hl7to-events dependent resource kit-br6bq0eue9ho5tj017mg (Integration Kit) changed phase to Ready
+> ```
+
 Let's run a test that generates a change in the status of a patient:
 
 > **NOTE:** In order for this test to work you should have signed up the personalId. You should have done this before when testing the Telegram Bot.
@@ -857,10 +867,12 @@ We are going to run the Node JS application directly using `npm start` but befor
 Let's build the Angular code.
 
 ```
-cd ${$CHE_PROJECTS_ROOT}/state-machine-assistant/frontend
+. ./00-environment.sh 
+cd ${CHE_PROJECTS_ROOT}/state-machine-assistant/frontend
 
 npm run build
 ```
+
 Let's set the environment properly...
 
 > **<span style="color:blue">IMPORTANT CRW:</span>** Do you remember the URL exposing the `backend` api? If you don't look for `IMPORTANT CRW`. Well we need to point the UI to the `backend` API running in CRW so do the following only that changing the ugly text by the proper URL *without the ending back slash*.
