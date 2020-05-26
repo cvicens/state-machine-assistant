@@ -73,6 +73,7 @@ If status is `InstallSucceeded` you have installed the operator successfully in 
 
 Now you could start creating custom resources managed by the AMQ Streams Operator, such as `Kafka`, `Kafka Connect`, etc.
 
+> **<span style="color:red">IMPORTANT:</span>** If later when creating your Kafka cluster it get's stuck after creating the Zookeeper cluster ask your admin to have a look to the Operator pod in namespace `openshift-operators`. It could be related to a race condition if the whole cluster has been restarted and the Operator pod was faster than the OpenShift API server.
 
 ### Deploying the Camel K Operator
 
@@ -159,7 +160,9 @@ oc new-project ${PROJECT_NAME}
 
 Now please run the script.
 
-> **WARNING:** Be sure you're logged in, if unsure run `oc whoami`
+> **WARNING:** Be sure you're logged in, if unsure run `oc whoami`. If YOu're not logged in then open
+>
+> oc login --token=IrYTUQdxuvV9ciOmCJW59CFFV5GkK-1tmbRjBvCT1_M --server=https://api.cluster-bbva-ce85.bbva-ce85.example.opentlc.com:6443
 
 ```sh
 ./01-deploy-kafka.sh
