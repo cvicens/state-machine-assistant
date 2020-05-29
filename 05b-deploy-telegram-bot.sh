@@ -3,6 +3,8 @@
 # Environment
 . ./00-environment.sh
 
+oc project ${PROJECT_NAME}
+
 read -p "PASTE TOKEN: " token
 if [[ -z "$token" ]]; then
     printf '%s\n' "You have to paste/type a valid token"
