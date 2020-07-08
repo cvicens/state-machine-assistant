@@ -22,7 +22,7 @@ metadata:
   name: ${CLUSTER_NAME}
 spec:
   kafka:
-    version: 2.3.0
+    version: 2.5.0
     replicas: 3
     listeners:
       plain: {}
