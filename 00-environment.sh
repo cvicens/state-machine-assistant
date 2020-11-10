@@ -1,8 +1,16 @@
 #!/bin/bash
 
-export PLATFORM="linux" # linux | mac | windows
+export PLATFORM="linux" # linux | mac
 
-export PROJECT_NAME="user1-sma"
+# If on Eclipse CHE
+if [ -z "${CHE_WORKSPACE_NAMESPACE}" ]
+then
+      WORK_USER=$(whoami)
+else
+      WORK_USER=${CHE_WORKSPACE_NAMESPACE}
+fi
+
+export PROJECT_NAME="${WORK_USER}-sma"
 export CLUSTER_NAME="sma-cluster"
 
 export HL7_EVENTS_TOPIC_NAME="hl7-events-topic"
