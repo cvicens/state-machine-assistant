@@ -31,7 +31,7 @@ components:
       - name: m2
         containerPath: /home/user/.m2
     alias: tools
-    image: 'quay.io/cvicensa/cnw-che-stack:7.21.1'
+    image: 'quay.io/cvicensa/cnw-che-stack:7.19.2'
     env:
       - value: >-
           -XX:MaxRAMPercentage=50.0 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
