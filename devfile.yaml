@@ -17,13 +17,21 @@ components:
     endpoints:
       - name: 8080/tcp
         port: 8080
-    memoryLimit: 768Mi
+      - name: 8081/tcp
+        port: 8081
+      - name: 8082/tcp
+        port: 8083
+      - name: 8084/tcp
+        port: 8084
+      - name: 4200/tcp
+        port: 4200
+    memoryLimit: 2048Mi
     type: dockerimage
     volumes:
       - name: m2
         containerPath: /home/user/.m2
     alias: tools
-    image: 'quay.io/cvicensa/cnw-che-stack:7.4.0-1'
+    image: 'quay.io/cvicensa/cnw-che-stack:7.21.1'
     env:
       - value: 'http://nexus.lab-infra:8081/repository/maven-all-public'
         name: MAVEN_MIRROR_URL
