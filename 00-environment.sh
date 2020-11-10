@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export PLATFORM="mac" # linux | mac | windows
+export PLATFORM="linux" # linux | mac | windows
 
 export PROJECT_NAME="user1-sma"
 export CLUSTER_NAME="sma-cluster"
