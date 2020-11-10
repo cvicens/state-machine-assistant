@@ -33,26 +33,13 @@ components:
     alias: tools
     image: 'quay.io/cvicensa/cnw-che-stack:7.21.1'
     env:
-      - value: 'http://nexus.lab-infra:8081/repository/maven-all-public'
-        name: MAVEN_MIRROR_URL
-      - value: /home/user/.m2
-        name: MAVEN_CONFIG
       - value: >-
-          -XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
-          -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
-          -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
-          -Xms20m -Djava.security.egd=file:/dev/./urandom -Duser.home=/home/user
-        name: MAVEN_OPTS
-      - value: >-
-          -XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+          -XX:MaxRAMPercentage=50.0 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
           -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
           -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
           -Xms20m -Djava.security.egd=file:/dev/./urandom
+          -Duser.home=/home/user
         name: JAVA_OPTS
-      - value: >-
-          -XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
-          -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
-          -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
-          -Xms20m -Djava.security.egd=file:/dev/./urandom
-        name: JAVA_TOOL_OPTIONS
+      - value: $(JAVA_OPTS)
+        name: MAVEN_OPTS
 apiVersion: 1.0.0
