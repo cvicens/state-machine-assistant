@@ -8,6 +8,6 @@ export CLUSTER_NAME="sma-cluster"
 export HL7_EVENTS_TOPIC_NAME="hl7-events-topic"
 export EVENTS_TOPIC_NAME="events-topic"
 
-export KAMEL_CLIENT_VERSION="1.1.1"
+export KAMEL_CLIENT_VERSION="1.2.0"
 
 export APP_NAME="state-machine-app"
