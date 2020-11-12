@@ -160,7 +160,7 @@ oc new-project ${PROJECT_NAME}
 
 Now please run the script.
 
-> **WARNING:** Be sure you're logged in, if unsure run `oc whoami`. If YOu're not logged in then open
+> **WARNING:** Be sure you're logged in, if unsure run `oc whoami`. If You're not logged in then open
 >
 > oc login --token=IrYTUQdxuvV9ciOmCJW59CFFV5GkK-1tmbRjBvCT1_M --server=https://api.cluster-bbva-ce85.bbva-ce85.example.opentlc.com:6443
 
@@ -443,6 +443,8 @@ Create a user (in our case user already existed).
 
 Finally send a message and see the result in your Telegram App. Something like `Patient JOHN SMITH with ID(PATID1234) has been admitted (ZZZ)`
 
+> **NOTE:** In a new terminal and after `cd state-machine-assistant`
+
 ```sh
 ./telegram-bot/send-message.sh 9876543210W http://localhost:9090
 ```
@@ -474,7 +476,7 @@ Now please run this command and provide the Telegram Token you obtained before.
 
 ```sh
 $ ./05b-deploy-telegram-bot.sh
-PASTE TOKEN: YOUR_TOKEN
+PASTE TOKEN: /R_TOKEN
 USING TOKEN YOUR_TOKEN 
 > telegram-bot@1.0.0 openshift /Users/cvicensa/Projects/openshift/tap/state-machine-assistant/telegram-bot
 > nodeshift --strictSSL=false --dockerImage=registry.access.redhat.com/rhoar-nodejs/nodejs-10
