@@ -19,6 +19,8 @@ components:
         port: 8080
       - name: 8090/tcp
         port: 8090
+      - name: 9090/tcp
+        port: 9090
       - name: 4200/tcp
         port: 4200
     memoryLimit: 2048Mi
