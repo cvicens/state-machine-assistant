@@ -20,7 +20,7 @@ then
       exit 1
 fi
 
-if [ -z "${CHE_PROJECTS}" ]
+if [ -z "${CHE_PROJECTS_ROOT}" ]
 then
       # Using a tunnel the database running in OpenShift
       oc port-forward $(oc get pod -l app=telegram-bot-database -o=jsonpath='{.items[0].metadata.name}' -n $PROJECT_NAME) -n $PROJECT_NAME 5432:5432 &      
