@@ -21,6 +21,8 @@ The scenario portrayed by this example application of the **fictitious Black Mou
 * **Integration layer (Camel K)** that translates HL7 events to plain events you can send to a human
 * **Telegram Bot (Node JS)** where you can signup with your ID, again data is persisted in a PostgreSQL Database
 
+![Toplogy](./images/topology-1.png)
+
 ## Scope
 
 In this guide we'll cover:
