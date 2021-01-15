@@ -4,7 +4,7 @@
 
 Some months ago I started playing with [Camel K](https://github.com/apache/camel-k), I instantanly fell in love with it (and I didn't have any previous experience with Camel), easy to deploy fast development, tons of components, you name it. As it usually happens (not just to me, right ;-) ) we the IT people try a new good thing and if we love it... we tend to use it everywhere... ok, that was my case, I started to think of crazy scenarios, but one of them stood out and after some refinement ended up being this project.
 
-> **NOTE:** Ideally you will read and do and see results... and (hopefully) learn some basics to create your own EDA (Event Driven Application). This lab is not really about creating everything from scratch but more about having an example project up and running and then exploring possibilities while learning.
+> ![NOTE](images/note-icon.png) **NOTE**: Ideally you will read and do and see results... and (hopefully) learn some basics to create your own EDA (Event Driven Application). This lab is not really about creating everything from scratch but more about having an example project up and running and then exploring possibilities while learning.
 
 ### The idea
 
@@ -12,7 +12,7 @@ The idea came to me after remembering how many times I had to go with my younges
 
 In order to give our example EDA a bit more of (fictitious) context, let's imagine there's a Health Information System (HIS) at a hospital called Black Mountain Hospital. This application has a UI where you can change the status of a patient and every time a change happens a proper HL7 message is sent.
 
-> **NOTE:** this is an over simplified HIS, please health related professionals don't get too mad at me, I know how complex a real HIS is ;-)
+> ![NOTE](images/note-icon.png) **NOTE**: this is an over simplified HIS, please health related professionals don't get too mad at me, I know how complex a real HIS is ;-)
 
 The scenario portrayed by this example application of the **fictitious Black Mountain Hospital** comprises these elements:
 
@@ -20,10 +20,6 @@ The scenario portrayed by this example application of the **fictitious Black Mou
 * **HIS backend (Spring Boot REST API)** exposing the patient info API, data is persisted in a PostgreSQL Database. This piece sends out HL7 messages to a Kafka topic
 * **Integration layer (Camel K)** that translates HL7 events to plain events you can send to a human
 * **Telegram Bot (Node JS)** where you can signup with your ID, again data is persisted in a PostgreSQL Database
-
-## Prerequisites
-
-You need access to an OpenShift 4.2+ cluster and be cluster-admin (or request your administrator to install a couple of elements for you). You can also run  your own local 4.x cluster using [CodeReady Containers](https://code-ready.github.io/crc/).
 
 ## Scope
 
@@ -33,9 +29,11 @@ In this guide we'll cover:
 * local development of UI, services and also the integration layer
 * the deployment of services on OpenShift
 
-## Get yourself ready
+## Prerequisites
 
-Git clone this repository and change dir... the usual.
+You need access to an OpenShift 4.2+ cluster and be cluster-admin (or request your administrator to install a couple of elements for you). You can also run  your own local 4.x cluster using [CodeReady Containers](https://code-ready.github.io/crc/).
+
+Get yourself ready cloning this git repository and change dir... the usual.
 
 ## Deployment of infrastructure
 
@@ -45,7 +43,7 @@ We need to deploy a couple of databases, Kafka and also Camel K... let's get to 
 
 In order to ease the deployment of Kafka we're going to use the `Red Hat AMQ Operator` (go [here](http://red.ht/operators) to learn more about operators).
 
-> **WARNING:** This task should be run by a cluster administrator
+> ![WARNING](images/warning-icon.png) **WARNING**: This task should be run by a cluster administrator
 
 Log in as a cluster admin to your cluster and go to `Operators->Operator Hub`. 
 
@@ -73,13 +71,13 @@ If status is `InstallSucceeded` you have installed the operator successfully in 
 
 Now you could start creating custom resources managed by the AMQ Streams Operator, such as `Kafka`, `Kafka Connect`, etc.
 
-> **<span style="color:red">IMPORTANT:</span>** If later when creating your Kafka cluster it get's stuck after creating the Zookeeper cluster ask your admin to have a look to the Operator pod in namespace `openshift-operators`. It could be related to a race condition if the whole cluster has been restarted and the Operator pod was faster than the OpenShift API server.
+> ![IMPORTANT](images/important-icon.png) **IMPORTANT**: If later when creating your Kafka cluster it get's stuck after creating the Zookeeper cluster ask your admin to have a look to the Operator pod in namespace `openshift-operators`. It could be related to a race condition if the whole cluster has been restarted and the Operator pod was faster than the OpenShift API server.
 
 ### Deploying the Camel K Operator
 
 As we have explained before we need a couple of Camel integrations; to translate HL7 messages coming in to a Kafka topic and another one to send those translated messages to a Telegram Bot. Well, in order to run this Camel integrations (routes) we can do it manually in a Java project, or use Camel K. For all the reasons mentions before and more we're going to use an operator the `Camel K Operator`.
 
-> **WARNING:** This task should be run by a cluster administrator
+> ![WARNING](images/warning-icon.png) **WARNING**: This task should be run by a cluster administrator
 
 Log in as to your cluster as cluster-admin and go to `Operators->Operator Hub`. 
 
@@ -108,7 +106,7 @@ Wait until `Status` changes to `InstallSucceeded`, if that is the case you have 
 
 Now you could start creating custom resources managed by the `Camel K Operator`, such as `Integration`, `Build`, etc.
 
-### Getting the sources
+## Getting the sources
 
 Here you have two options, you can just `git clone` or use CodeReady Workspaces.
 
@@ -122,9 +120,9 @@ If you have access to a [CodeReady Workspaces (CRW)](https://developers.redhat.c
 
 Either on CRW or not you have to be in (or open a) terminal and.
 
-> **NOTE:** If on CRW you can use `${CHE_PROJECTS_ROOT}/state-machine-assistant`
+> ![NOTE](images/note-icon.png) **NOTE**: If on CRW you can use `${CHE_PROJECTS_ROOT}/state-machine-assistant`
 
-```
+```sh
 cd ./state-machine-assistant
 ```
 
@@ -132,68 +130,73 @@ cd ./state-machine-assistant
 
 As we mentioned before we need a couple of Topics, one for HL7 events and another one for translated events... and of course we need a Kafka cluster to support them.
 
-> **NOTE:** This task and the next ones don't require special permissions apart from being able to create namespaces, deployments, PODs, etc.
+> ![NOTE](images/note-icon.png) **NOTE**: This task and the next ones don't require special permissions apart from being able to create namespaces, deployments, PODs, etc.
 
 We have prepared a set of numbered shell scripts, please have a look to the one numbered `00` where some base environment variables are set. You may need to change the project name to be sure it's unique in your cluster...
 
-Set the environment any time by doing this. Please run the next command, we'll need to use $PROJECT_NAME environment variable later:
+1. Set the environment any time by doing this. Please run the next command, we'll need to use $PROJECT_NAME environment variable later:
 
-```sh
-. ./00-environment.sh
-```
+    ```sh
+    . ./00-environment.sh
+    ```
 
-In this step we will run `./01-deploy-kafka.sh`, please have a look to this script, there are a couple of important bits there.
+    In this step we will run `./01-deploy-kafka.sh`, please have a look to this script, there are a couple of important bits there.
 
-**First**, it creates a project to hold all the elements. Next is the excerpt 
+    **First**, it creates a project to hold all the elements. Next is the excerpt
 
-```sh
-oc new-project ${PROJECT_NAME}
-```
+    ```sh
+    oc new-project ${PROJECT_NAME}
+    ```
 
-> **<span style="color:red">IMPORTANT:</span>** if you run the scripts in order (and you don't create another project in between), the default project will be automatically set to the project create, that is the one set by $PROJECT_NAME environment variable, see `00-environment.sh`. If you have created another project or just want to be sure the default project is set correctly, please use: `oc project`. If you need to set the default project back to $PROJECT_NAME do this: `. ./00-environment.sh && oc project $PROJECT_NAME` 
+    > ![IMPORTANT](images/important-icon.png) **IMPORTANT**: if you run the scripts in order (and you don't create another project in between), the default project will be automatically set to the project create, that is the one set by $PROJECT_NAME environment variable, see `00-environment.sh`. If you have created another project or just want to be sure the default project is set correctly, please use: `oc project`. If you need to set the default project back to $PROJECT_NAME do this: `. ./00-environment.sh && oc project $PROJECT_NAME`
 
-**Second**, it also creates a Custom Resource (CR) of type `Kafka` that defines a Kafka cluster with 3 replicas, three listeners, plain, secure and https based (external). And a couple of CRs of type `KafkaTopic` for each of the kafka topics we need.
+    **Second**, it also creates a Custom Resource (CR) of type `Kafka` that defines a Kafka cluster with 3 replicas, three listeners, plain, secure and https based (external). And a couple of CRs of type `KafkaTopic` for each of the kafka topics we need.
 
-> **NOTE 1:** The `AMQ Streams Operator` reacts to the creation/update/delete of a set of Custom Resource Definitions, go [here](https://access.redhat.com/documentation/en-us/red_hat_amq/7.3/html/using_amq_streams_on_openshift_container_platform/getting-started-str#cluster-operator-str) for further details
+    > ![NOTE](images/note-icon.png) **NOTE 1**: The `AMQ Streams Operator` reacts to the creation/update/delete of a set of Custom Resource Definitions, go [here](https://access.redhat.com/documentation/en-us/red_hat_amq/7.3/html/using_amq_streams_on_openshift_container_platform/getting-started-str#cluster-operator-str) for further details
 
-> **NOTE 2:** The **external listener** is needed only while running the backend logic locally because the kafka cluster is running in OpenShift. In general this external listener is not needed when the logic run in the same cluster as the kafka cluster.
+    > ![NOTE](images/note-icon.png) **NOTE 2**: The **external listener** is needed only while running the backend logic locally because the kafka cluster is running in OpenShift. In general this external listener is not needed when the logic run in the same cluster as the kafka cluster.
 
-Now please run the script.
+2. Now please run the script.
 
-> **WARNING:** Be sure you're logged in, if unsure run `oc whoami`. If You're not logged in then open
->
-> oc login --token=IrYTUQdxuvV9ciOmCJW59CFFV5GkK-1tmbRjBvCT1_M --server=https://api.cluster-bbva-ce85.bbva-ce85.example.opentlc.com:6443
+    ```sh
+    ./01-deploy-kafka.sh
+    ```
 
-```sh
-./01-deploy-kafka.sh
-```
+    > ![WARNING](images/warning-icon.png) **WARNING**: Be sure you're logged in, if unsure run `oc whoami`. If you're not logged in then open the OpenShift web console, click your profile name, such as userXX, and then click `Copy Login Command`. Finally, click `Display Token`, copy the oc login command, and paste the command into your terminal. The code looks like:
+    >
+    >
+    > ```sh
+    > oc login --token=IrYTUQdxuvV9ciOmCJW59CFFV5GkK-1tmbRjBvCT1_M --server=https://api.cluster-bbva-ce85.bbva-ce85.example.opentlc.com:6443
+    > ```
 
-To monitor the status of the deployment you can run the next command.
+    To monitor the status of the deployment you can run the next command.
 
-> As you can see, there are 3 replicas both for the kafka cluster and for the zookeeper cluster, all of them are running.
+    > As you can see, there are 3 replicas both for the kafka cluster and for the zookeeper cluster, all of them are running.
 
-```sh
-$ oc get pod -n $PROJECT_NAME | grep sma-cluster
-sma-cluster-entity-operator-55d6f79ccf-dckht   3/3     Running     16         5d15h
-sma-cluster-kafka-0                            2/2     Running     11         5d15h
-sma-cluster-kafka-1                            2/2     Running     11         5d15h
-sma-cluster-kafka-2                            2/2     Running     11         5d15h
-sma-cluster-zookeeper-0                        2/2     Running     8          5d15h
-sma-cluster-zookeeper-1                        2/2     Running     8          5d15h
-sma-cluster-zookeeper-2                        2/2     Running     8          5d15h
-```
+    ```sh
+    $ oc get pod -n $PROJECT_NAME -w
+    sma-cluster-entity-operator-55d6f79ccf-dckht   3/3     Running     16         5d15h
+    sma-cluster-kafka-0                            2/2     Running     11         5d15h
+    sma-cluster-kafka-1                            2/2     Running     11         5d15h
+    sma-cluster-kafka-2                            2/2     Running     11         5d15h
+    sma-cluster-zookeeper-0                        2/2     Running     8          5d15h
+    sma-cluster-zookeeper-1                        2/2     Running     8          5d15h
+    sma-cluster-zookeeper-2                        2/2     Running     8          5d15h
+    ```
 
-Another test you can run, this one to check if our topics were created properly.
+    > ![NOTE](images/note-icon.png) **NOTE**: The `-w` flag watch for changes. To exit out of the watch command, just hit the `Ctrl+C` key combination.
 
-```sh
-$ oc rsh -n $PROJECT_NAME sma-cluster-kafka-0 bin/kafka-topics.sh --list --bootstrap-server localhost:9092
-Defaulting container name to kafka.
-Use 'oc describe pod/sma-cluster-kafka-0 -n state-machine-assistant' to see all of the containers in this pod.
-OpenJDK 64-Bit Server VM warning: If the number of processors is expected to increase from one, then you should configure the number of parallel GC threads appropriately using -XX:ParallelGCThreads=N
-__consumer_offsets
-events-topic
-hl7-events-topic
-```
+    Another test you can run, this one to check if our topics were created properly.
+
+    ```sh
+    $ oc rsh -n $PROJECT_NAME sma-cluster-kafka-0 bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+    Defaulting container name to kafka.
+    Use 'oc describe pod/sma-cluster-kafka-0 -n state-machine-assistant' to see all of the containers in this pod.
+    OpenJDK 64-Bit Server VM warning: If the number of processors is expected to increase from one, then you should configure the number of parallel GC threads appropriately using -XX:ParallelGCThreads=N
+    __consumer_offsets
+    events-topic
+    hl7-events-topic
+    ```
 
 ### Install Camel K CLI
 
@@ -201,7 +204,7 @@ This step is quite easy... it only requires to download the Camel K CLI binary, 
 
 Please run this script.
 
-> **NOTE:** open the script `00-environment.sh` if you want to change the cli version
+> ![NOTE](images/note-icon.png) **NOTE**: open the script `00-environment.sh` if you want to change the cli version
 
 ```sh
 ./02-install-camel-k-cli.sh
@@ -238,7 +241,7 @@ Now run the script.
 Check the status of the deployment with this command. Eventually you should see something like this where the status of our database pods is `Running`, like `backend-database-1-ttq2b` in this example output.
 
 ```sh
-$ oc get pod -n $PROJECT_NAME | grep database
+$ oc get pod -n $PROJECT_NAME -w
 backend-database-1-deploy                                0/1     Completed   0          5m
 backend-database-1-ttq2b                                 1/1     Running     4          4m
 telegram-bot-database-1-7qv4d                            1/1     Running     4          4m
@@ -396,7 +399,6 @@ Time to paste this token, open `./05a-run-telegram-bot.sh` and paste it when req
 > Run this script in an new terminal window. Be aware that it will use `oc port-forward` to open a tunnel with the database running in OpenShift. By the way this script could also work properly completely local if you uncomment the required lines `Using docker to run a database`.
 
 ```sh
-$ . ./00-environment.sh
 $ ./05a-run-telegram-bot.sh 
 PASTE TOKEN: YOUR_TOKEN
 USING TOKEN YOUR_TOKEN
@@ -443,7 +445,7 @@ Create a user (in our case user already existed).
 
 Finally send a message and see the result in your Telegram App. Something like `Patient JOHN SMITH with ID(PATID1234) has been admitted (ZZZ)`
 
-> **NOTE:** In a new terminal and after `cd state-machine-assistant`
+> ![NOTE](images/note-icon.png) **NOTE**: In a new terminal and after `cd state-machine-assistant`
 
 ```sh
 ./telegram-bot/send-message.sh 9876543210W http://localhost:9090
@@ -455,7 +457,7 @@ Finally send a message and see the result in your Telegram App. Something like `
 
 Before we can run the integration layer we need to deploy the Telegram Bot to OpenShift.
 
-> **INFO:** This is so, because the integration layer runs in the cluster so it would be required for your local Telegram Bot to be listening in an external IP reachable from the cluster
+> ![INFO](images/info-icon.png) **INFO**: This is so, because the integration layer runs in the cluster so it would be required for your local Telegram Bot to be listening in an external IP reachable from the cluster
 
 We're going to deploy our application using [Nodeshift](https://github.com/nodeshift/nodeshift). Nodeshift helps us deploying our NodeJS application from the command line using [Source to image](https://github.com/openshift/source-to-image) behind scenes. in order to do that you have to provide minimal information in the shape of YAML descriptors in a folder named [`.nodeshift`](./telegram-bot/.nodeshift) and being logged in to an OpenShift cluster.
 
@@ -472,7 +474,7 @@ Hmm may be you've notice some things are missing here:
 
 Now please run this command and provide the Telegram Token you obtained before.
 
-> **INFO:** If you happen to forget the token, you can always go to BotFater and ask him ;-) with `/mybots`
+> ![INFO](images/info-icon.png) **INFO**: If you happen to forget the token, you can always go to BotFater and ask him ;-) with `/mybots`
 
 ```sh
 $ ./05b-deploy-telegram-bot.sh
@@ -520,7 +522,7 @@ USING TOKEN YOUR_TOKEN
 
 Now it's time to run, locally, our Spring Boot HIS API. In order to do so we run [./06-run-backend.sh](./06-run-backend.sh). Open a new terminal and run it:
 
-> **INFO:** This script runs our application which connects to the Kafka topic $HL7_EVENTS_TOPIC. If you're wondering why it connects to the Kafka cluster, the answer is this environment variable KAFKA_SERVICE_HOST. When run locally it's filled with the result of running this command: `=$(oc -n ${PROJECT_NAME} get routes ${CLUSTER_NAME}-kafka-bootstrap -o=jsonpath='{.status.ingress[0].host}{"\n"}')`, when running in OpenShift the value is predefined in `application-openshifr.properties` and equals to `sma-cluster-kafka-brokers:9092`. 
+> ![INFO](images/info-icon.png) **INFO**: This script runs our application which connects to the Kafka topic $HL7_EVENTS_TOPIC. If you're wondering why it connects to the Kafka cluster, the answer is this environment variable KAFKA_SERVICE_HOST. When run locally it's filled with the result of running this command: `=$(oc -n ${PROJECT_NAME} get routes ${CLUSTER_NAME}-kafka-bootstrap -o=jsonpath='{.status.ingress[0].host}{"\n"}')`, when running in OpenShift the value is predefined in `application-openshifr.properties` and equals to `sma-cluster-kafka-brokers:9092`. 
 
 ```sh
 ./06-run-backend.sh
@@ -614,7 +616,7 @@ If it all works properly you should get something like this:
 2020-01-14 19:22:47.968  INFO 80644 --- [       Thread-8] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-1, groupId=kafkaHisBackendConsumerGroup] Setting newly assigned partitions [hl7-events-topic-0]
 ```
 
-> **<span style="color:blue">IMPORTANT CRW:</span>** If you're running the lab on CRW you should see a pop up asking you to expose port `8080`, say yes. Then it will ask you to open a link, say yes again and copy the URL. 
+> ![IMPORTANT](images/important-icon.png) **IMPORTANT CRW**: If you're running the lab on CRW you should see a pop up asking you to expose port `8080`, say yes. Then it will ask you to open a link, say yes again and copy the URL. 
 
 ![Open Link](./images/crw-open-link.png)
 
@@ -754,7 +756,7 @@ And yet in another terminal window, run:
 $ ./07b-run-integration.sh
 ```
 
-> **NOTE:** you have to wait until the integrations are up and running! During the building phase you will see traces like the next ones, wait until you see `Integration "XYZ" in phase Running`:
+> ![NOTE](images/note-icon.png) **NOTE**: you have to wait until the integrations are up and running! During the building phase you will see traces like the next ones, wait until you see `Integration "XYZ" in phase Running`:
 > ```
 > Integration hl7to-events dependent resource kit-br6bq0eue9ho5tj017mg (Build) changed phase to Scheduling
 > Integration hl7to-events dependent resource kit-br6bq0eue9ho5tj017mg (Build) changed phase to Pending
@@ -766,7 +768,7 @@ $ ./07b-run-integration.sh
 
 Let's run a test that generates a change in the status of a patient:
 
-> **NOTE:** In order for this test to work you should have signed up the personalId. You should have done this before when testing the Telegram Bot.
+> ![NOTE](images/note-icon.png) **NOTE**: In order for this test to work you should have signed up the personalId. You should have done this before when testing the Telegram Bot.
 
 ```sh
 curl -H 'Content-Type: application/json' -X PUT \
@@ -792,7 +794,7 @@ IN2|ID1551001|SSN12345678||132987AD|CP|KATE^SMITH^ELLEN|199505011201|37^MARTINEZ
 
 And in 7b you should get:
 
-> **<span style="color:red">WARNING:</span>** If you get "org.apache.camel.http.common.HttpOperationFailedException: HTTP operation failed invoking http://172.30.88.135:8080/new-message with statusCode: 404" then you have to `/signup 9876543210W` again!
+> ![WARNING](images/warning-icon.png) **WARNING**: If you get "org.apache.camel.http.common.HttpOperationFailedException: HTTP operation failed invoking http://172.30.88.135:8080/new-message with statusCode: 404" then you have to `/signup 9876543210W` again!
 
 ```sh
 [1] 2020-01-14 18:40:20.887 INFO  [Camel (camel-k) thread #2 - KafkaConsumer[events-topic]] events-to-bot - Route started from Kafka Topic events-topic
@@ -822,7 +824,7 @@ Here we have a different approach if you're using [CodeReady Workspaces - CRW](h
 
 #### If you're not using CRW
 
-> **INFO:** The trick is in the script `dev` in `./frontend/package.json` that runs in paralell `client` and `server`. `client` uses `--proxy-config server.conf.js` to set the proxy rules. Open [`./run-dev.sh`](./run-dev.sh) and check the line `npm run dev`.
+> ![INFO](images/info-icon.png) **INFO**: The trick is in the script `dev` in `./frontend/package.json` that runs in paralell `client` and `server`. `client` uses `--proxy-config server.conf.js` to set the proxy rules. Open [`./run-dev.sh`](./run-dev.sh) and check the line `npm run dev`.
 
 Run the following script and you'll have the Angular App running in development mode on port `4200` proxying requests to `/api/patients` to the `backend` (port `8080`) and also proxies requests to `/server.json` to `8090`, hence this command also changes the port of the Node JS to avoid colliding with `backend`.
 
@@ -882,7 +884,7 @@ npm run build
 
 Let's set the environment properly...
 
-> **<span style="color:blue">IMPORTANT CRW:</span>** Do you remember the URL exposing the `backend` api? If you don't look for `IMPORTANT CRW`. Well we need to point the UI to the `backend` API running in CRW so do the following only that changing the ugly text by the proper URL *without the ending back slash*.
+> ![IMPORTANT](images/important-icon.png) **IMPORTANT CRW**: Do you remember the URL exposing the `backend` api? If you don't look for `IMPORTANT CRW`. Well we need to point the UI to the `backend` API running in CRW so do the following only that changing the ugly text by the proper URL *without the ending back slash*.
 
 ```
 export GW_ENDPOINT=<PASTE THE BACKEND URL HERE>
@@ -895,13 +897,13 @@ Finally let's run the application.
 npm start
 ```
 
-> **<span style="color:blue">IMPORTANT CRW:</span>** Again if running on CRW you'll be asked to expose and open a link. Please click on 
+> ![IMPORTANT](images/important-icon.png) **IMPORTANT CRW**: Again if running on CRW you'll be asked to expose and open a link. Please click on 
 
 ![Expose frontend on CRW](./images/crw-expose-frontend.png)
 
 ![Open link to frontend on CRW](./images/crw-open-link-frontend.png)
 
-Now open a browser and point to http://localhost:4200. You should see something like this. (Or if on CRW you just did by saying yes...)
+Now open a browser and point to http://localhost:4200 in case you're not using CRW or just click on the `Open Link` button from the pop-up if you're using it. You should see something like this. (Or if on CRW you just did by saying yes...)
 
 ![HIS Frontend local test 1](./images/front-end-local-test-1.png)
 
@@ -1000,7 +1002,7 @@ We only need the route of our HIS Frontend application, you can get it by runnin
 > You can also use the web console and go to  `Projects->YOUR_PROJECT->Workloads` Click on `frontend` then look for `Resources->Routes`
 
 ```sh
-oc get route/frontend -n $PROJECT_NAME 
+oc get route/frontend -n $PROJECT_NAME
 ```
- 
- Open a browser and change the status of PETER JONES at will, you should expect the same results as before.
+
+Open a browser and change the status of PETER JONES at will, you should expect the same results as before.
