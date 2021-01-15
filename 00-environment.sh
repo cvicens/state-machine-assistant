@@ -1,5 +1,7 @@
 #!/bin/bash
 
+SCRIPTPATH="$(cd "$(dirname "$BASH_SOURCE")"; pwd)"
+
 export PLATFORM="linux" # linux | mac
 
 # If on Eclipse CHE
@@ -19,3 +21,6 @@ export EVENTS_TOPIC_NAME="events-topic"
 export KAMEL_CLIENT_VERSION="1.2.0"
 
 export APP_NAME="state-machine-app"
+
+# Adds to the PATH the Kamel cli
+PATH=$PATH:$SCRIPTPATH
