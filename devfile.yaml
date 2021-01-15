@@ -8,7 +8,7 @@ projects:
       branch: master
 components:
   - id: redhat/java/latest
-    memoryLimit: 1512Mi
+    memoryLimit: 2048Mi
     type: chePlugin
   - id: che-incubator/typescript/latest
     memoryLimit: 512Mi
@@ -17,34 +17,27 @@ components:
     endpoints:
       - name: 8080/tcp
         port: 8080
-    memoryLimit: 768Mi
+      - name: 8090/tcp
+        port: 8090
+      - name: 9090/tcp
+        port: 9090
+      - name: 4200/tcp
+        port: 4200
+    memoryLimit: 2048Mi
     type: dockerimage
     volumes:
       - name: m2
         containerPath: /home/user/.m2
     alias: tools
-    image: 'quay.io/cvicensa/cnw-che-stack:7.4.0-1'
+    image: 'quay.io/cvicensa/cnw-che-stack:7.19.2'
     env:
-      - value: 'http://nexus.lab-infra:8081/repository/maven-all-public'
-        name: MAVEN_MIRROR_URL
-      - value: /home/user/.m2
-        name: MAVEN_CONFIG
       - value: >-
-          -XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
-          -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
-          -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
-          -Xms20m -Djava.security.egd=file:/dev/./urandom -Duser.home=/home/user
-        name: MAVEN_OPTS
-      - value: >-
-          -XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
+          -XX:MaxRAMPercentage=50.0 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
           -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
           -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
           -Xms20m -Djava.security.egd=file:/dev/./urandom
+          -Duser.home=/home/user
         name: JAVA_OPTS
-      - value: >-
-          -XX:MaxRAMPercentage=50 -XX:+UseParallelGC -XX:MinHeapFreeRatio=10
-          -XX:MaxHeapFreeRatio=20 -XX:GCTimeRatio=4
-          -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true
-          -Xms20m -Djava.security.egd=file:/dev/./urandom
-        name: JAVA_TOOL_OPTIONS
+      - value: $(JAVA_OPTS)
+        name: MAVEN_OPTS
 apiVersion: 1.0.0

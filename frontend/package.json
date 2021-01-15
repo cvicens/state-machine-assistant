@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "client": "npx ng serve --proxy-config server.conf.js",
+    "client": "npx ng serve --host=0.0.0.0 --disableHostCheck=true --proxy-config server.conf.js",
     "server": "npx nodemon server.js",
     "dev": "npx concurrently --kill-others \"npm run client\" \"npm run server\"",
     "start": "node server.js",

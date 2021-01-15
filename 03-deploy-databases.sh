@@ -4,11 +4,11 @@
 . ./00-environment.sh
 
 # Data Base for backend
-oc new-app -e POSTGRESQL_USER=luke -ePOSTGRESQL_PASSWORD=secret -ePOSTGRESQL_DATABASE=my_data \
+oc new-app -e POSTGRESQL_USER=luke -ePOSTGRESQL_PASSWORD=secret -ePOSTGRESQL_DATABASE=my_data --labels='app=backend-database' \
     centos/postgresql-10-centos7 --name=backend-database -n ${PROJECT_NAME}
 
 # Data Base for telegram-bot
-oc new-app -e POSTGRESQL_USER=luke -ePOSTGRESQL_PASSWORD=secret -ePOSTGRESQL_DATABASE=my_data \
+oc new-app -e POSTGRESQL_USER=luke -ePOSTGRESQL_PASSWORD=secret -ePOSTGRESQL_DATABASE=my_data --labels='app=telegram-bot-database' \
     centos/postgresql-10-centos7 --name=telegram-bot-database -n ${PROJECT_NAME}
 
 oc label deployment/backend-database app.openshift.io/runtime=postgresql --overwrite -n ${PROJECT_NAME} && \
