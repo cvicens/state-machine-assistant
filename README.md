@@ -21,10 +21,6 @@ The scenario portrayed by this example application of the **fictitious Black Mou
 * **Integration layer (Camel K)** that translates HL7 events to plain events you can send to a human
 * **Telegram Bot (Node JS)** where you can signup with your ID, again data is persisted in a PostgreSQL Database
 
-## Prerequisites
-
-You need access to an OpenShift 4.2+ cluster and be cluster-admin (or request your administrator to install a couple of elements for you). You can also run  your own local 4.x cluster using [CodeReady Containers](https://code-ready.github.io/crc/).
-
 ## Scope
 
 In this guide we'll cover:
@@ -33,9 +29,11 @@ In this guide we'll cover:
 * local development of UI, services and also the integration layer
 * the deployment of services on OpenShift
 
-## Get yourself ready
+## Prerequisites
 
-Git clone this repository and change dir... the usual.
+You need access to an OpenShift 4.2+ cluster and be cluster-admin (or request your administrator to install a couple of elements for you). You can also run  your own local 4.x cluster using [CodeReady Containers](https://code-ready.github.io/crc/).
+
+Git clone this repository and change dir... the usual. Or use the CodeReady Workspaces magic url, more on this later.
 
 ## Deployment of infrastructure
 
@@ -108,6 +106,8 @@ Wait until `Status` changes to `InstallSucceeded`, if that is the case you have 
 
 Now you could start creating custom resources managed by the `Camel K Operator`, such as `Integration`, `Build`, etc.
 
+## Starting the workshop!
+
 ### Getting the sources
 
 Here you have two options, you can just `git clone` or use CodeReady Workspaces.
@@ -162,7 +162,7 @@ Now please run the script.
 
 > **WARNING:** Be sure you're logged in, if unsure run `oc whoami`. If YOu're not logged in then open
 >
-> oc login --token=IrYTUQdxuvV9ciOmCJW59CFFV5GkK-1tmbRjBvCT1_M --server=https://api.cluster-bbva-ce85.bbva-ce85.example.opentlc.com:6443
+> oc login --token=IrYTUQdxuvV9ciOmCJW59CFFV5GkK-1tmbRjBvCT1_M --server=https://api.cluster-acme-ce85.acme-ce85.example.opentlc.com:6443
 
 ```sh
 ./01-deploy-kafka.sh
