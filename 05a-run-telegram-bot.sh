@@ -20,8 +20,13 @@ then
       exit 1
 fi
 
-# Using a tunnel the database running in OpenShift
-oc port-forward $(oc get pod -l app=telegram-bot-database -o=jsonpath='{.items[0].metadata.name}' -n $PROJECT_NAME) -n $PROJECT_NAME 5432:5432 &
+if [ -z "${CHE_PROJECTS}" ]
+then
+      # Using a tunnel the database running in OpenShift
+      oc port-forward $(oc get pod -l app=telegram-bot-database -o=jsonpath='{.items[0].metadata.name}' -n $PROJECT_NAME) -n $PROJECT_NAME 5432:5432 &      
+else
+      DB_HOST=telegram-bot-database.${PROJECT_NAME}
+fi
 
 # Using docker to run a database
 #docker stop telegram-bot-postgres && docker rm telegram-bot-postgres
