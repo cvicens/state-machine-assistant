@@ -1,6 +1,6 @@
 {
   "name": "frontend",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "scripts": {
     "ng": "ng",
     "client": "npx ng serve --host=0.0.0.0 --disableHostCheck=true --proxy-config server.conf.js",

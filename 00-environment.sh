@@ -7,10 +7,12 @@ export PLATFORM="linux" # linux | mac
 # If on Eclipse CHE
 if [ -z "${CHE_WORKSPACE_NAMESPACE}" ]
 then
-      WORK_USER=$(whoami)
+      WORK_USER=$(oc whoami)
 else
       WORK_USER=${CHE_WORKSPACE_NAMESPACE}
 fi
+
+export KAFKA_VERSION=2.7.0
 
 export PROJECT_NAME="${WORK_USER}-sma"
 export CLUSTER_NAME="sma-cluster"
@@ -18,7 +20,7 @@ export CLUSTER_NAME="sma-cluster"
 export HL7_EVENTS_TOPIC_NAME="hl7-events-topic"
 export EVENTS_TOPIC_NAME="events-topic"
 
-export KAMEL_CLIENT_VERSION="1.2.0"
+export KAMEL_CLIENT_VERSION="1.4.0"
 
 export APP_NAME="state-machine-app"
 

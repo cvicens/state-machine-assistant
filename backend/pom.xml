@@ -23,7 +23,7 @@
   </parent>
   <groupId>com.yourcompany.newapp</groupId>
   <artifactId>backend</artifactId>
-  <version>1.0.0</version>
+  <version>0.0.1</version>
   <name>Spring Boot - CRUD Booster</name>
   <description>Spring Boot - CRUD Booster</description>
   <properties>

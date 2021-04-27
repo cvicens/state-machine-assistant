@@ -22,7 +22,7 @@ metadata:
   name: ${CLUSTER_NAME}
 spec:
   kafka:
-    version: 2.5.0
+    version: ${KAFKA_VERSION}
     replicas: 3
     listeners:
       plain: {}
@@ -36,6 +36,22 @@ spec:
       log.message.format.version: '2.3'
     storage:
       type: ephemeral
+  kafkaExporter:
+    groupRegex: ".*" 
+    topicRegex: ".*" 
+    resources: 
+      requests:
+        cpu: 200m
+        memory: 64Mi
+      limits:
+        cpu: 500m
+        memory: 128Mi
+    readinessProbe: 
+      initialDelaySeconds: 15
+      timeoutSeconds: 5
+    livenessProbe: 
+      initialDelaySeconds: 15
+      timeoutSeconds: 5
   zookeeper:
     replicas: 3
     storage:
@@ -75,3 +91,22 @@ spec:
     retention.ms: 604800000
     segment.bytes: 1073741824
 EOF
+
+# echo "If the next command fails tell cluster-admin to run this for you: oc policy add-role-to-user monitoring-edit ${USER_NAME} -n ${PROJECT_NAME}"
+
+# cat << EOF | oc -n ${PROJECT_NAME} create -f -
+# apiVersion: monitoring.coreos.com/v1
+# kind: ServiceMonitor
+# metadata:
+#   name: kafka-monitor
+#   labels:
+#     k8s-app: kafka-monitor
+# spec:
+#   endpoints:
+#     - interval: 30s
+#       port: tcp-prometheus
+#   selector:
+#     matchLabels:
+#       strimzi.io/kind: Kafka
+# EOF
+

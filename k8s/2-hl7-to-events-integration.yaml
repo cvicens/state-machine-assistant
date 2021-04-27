@@ -1,0 +1,129 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: hl7-to-events  
+data:
+  application.properties: |-
+    my.message=value-1
+    kafka.bootstrap-servers=sma-cluster-kafka-brokers:9092
+    kafka.from.topic=hl7-events-topic
+    kafka.to.topic=events-topic
+    kafka.clientId=kafkaClientHl7ToEvents
+    kafka.groupId=kafkaHl7EventsConsumerGroup
+    telegram-bot.host=telegram-bot
+    telegram-bot.port="8080" 
+    logging.level.org.apache.camel=INFO
+---
+apiVersion: camel.apache.org/v1
+kind: Integration
+metadata:
+  name: hl7-to-events
+spec:
+  configuration:
+    - type: configmap
+      value: hl7-to-events
+  dependencies:
+    - 'camel:gson'
+    - 'mvn:ca.uhn.hapi:hapi-base:2.3'
+    - 'mvn:ca.uhn.hapi:hapi-structures-v24:2.3'
+  sources:
+    - content: |-
+        import java.util.Map;
+        import java.util.HashMap;
+        import java.util.Base64;
+
+        import org.apache.camel.Exchange;
+
+        import org.apache.camel.builder.RouteBuilder;
+
+        import org.apache.camel.LoggingLevel;
+        import org.apache.camel.builder.RouteBuilder;
+        import org.apache.camel.component.properties.PropertiesComponent;
+
+        import org.apache.camel.model.dataformat.JsonLibrary;
+
+        import ca.uhn.hl7v2.HL7Exception;
+        import ca.uhn.hl7v2.DefaultHapiContext;
+        import ca.uhn.hl7v2.HL7Exception;
+        import ca.uhn.hl7v2.HapiContext;
+        import ca.uhn.hl7v2.model.Message;
+        import ca.uhn.hl7v2.model.v24.message.ORU_R01;
+        import ca.uhn.hl7v2.parser.EncodingNotSupportedException;
+        import ca.uhn.hl7v2.parser.Parser;
+        import ca.uhn.hl7v2.util.Terser;
+
+
+        public class HL7ToEvents extends RouteBuilder {
+          @Override
+          public void configure() throws Exception {
+            
+            from("kafka:{{kafka.from.topic}}?brokers={{kafka.bootstrap-servers}}&groupId={{kafka.groupId}}")
+                .routeId("hl7-to-patient-info")
+                .onException(Exception.class)
+                    .handled(true)
+                    .log(LoggingLevel.ERROR, "Error connecting to server, please check the application.properties file ${exception.message}")
+                    .end()
+                .onException(HL7Exception.class)
+                    .handled(true)
+                    .log(LoggingLevel.ERROR, "Error unmarshalling ${exception.message}")
+                    .end()
+                .log("Route started from Telegram")
+                .log("body: ${body}")
+                .process(exchange -> {
+                    String encodedMessage = exchange.getIn().getBody(String.class);
+                    System.out.println("Encoded Message " + encodedMessage);
+
+                    byte[] decodedBytes = Base64.getDecoder().decode(encodedMessage);
+                    String decodedMessage = new String(decodedBytes);
+                    decodedMessage = decodedMessage.replaceAll("\n", "\r");
+                    System.out.println("Decoded Message " + decodedMessage);
+
+                    HapiContext context = new DefaultHapiContext();
+                    Parser p = context.getGenericParser();
+                    Message hapiMessage   = p.parse(decodedMessage);
+                    
+                    Terser terser = new Terser(hapiMessage);
+                    
+                    String sendingApplication = terser.get("/.MSH-3-1");
+                    System.out.println("sendingApplication " + sendingApplication);
+
+                    String msgCode = terser.get("/.MSH-9-1");
+                    String msgTriggerEvent = terser.get("/.MSH-9-2");
+                    
+                    System.out.println(">>> HL7 code: " + msgCode + " event: " + msgTriggerEvent);
+                    
+                    String surname = terser.get("/.PID-5-1");
+                    String name = terser.get("/.PID-5-2");
+                    String patientId = terser.get("/.PID-2-1") != null ? terser.get("/.PID-2-1") : terser.get("/.PID-3-1");
+                    String personalId = terser.get("/.PID-4-1") != null ? terser.get("/.PID-4-1") : terser.get("/.PID-3-1");
+                    
+                    Map<String, String> data = new HashMap<String, String>();
+
+                    String message = "Patient " + name + " " + surname + " with ID(" + personalId + ")" + " has been";
+                    if (msgTriggerEvent.equalsIgnoreCase("A01") || msgTriggerEvent.equalsIgnoreCase("A04")) {
+                        message += " admitted (" + msgTriggerEvent + ")";
+                    } else if (msgTriggerEvent.equalsIgnoreCase("A08")) {
+                        message += " updated (" + msgTriggerEvent + ")";
+                    } else if (msgTriggerEvent.equalsIgnoreCase("A03")) {
+                        message += " discharged (" + msgTriggerEvent + ")";
+                    } else {
+                        message += " taken care (" + msgTriggerEvent + ")";
+                    }
+
+                    data.put("message", message + " in Black Mountain");
+                    data.put("personalId", personalId); // Change to personalId once Telegram Bot is ready
+                    data.put("patientId", patientId);
+
+                    exchange.getIn().setBody(data);
+                })
+                // marshall to JSON with GSON
+                .marshal().json(JsonLibrary.Gson)
+                .log("Converting to JSON data: ${body}")
+                .convertBodyTo(String.class)
+                .log("Sending message ${body} to topic {{kafka.to.topic}}")
+                .to("kafka:{{kafka.to.topic}}?brokers={{kafka.bootstrap-servers}}&groupId={{kafka.groupId}}")
+                .log("Event sent successfully: ${body}");
+          }
+        }
+      name: HL7ToEvents.java

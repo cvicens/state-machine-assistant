@@ -1,0 +1,666 @@
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: telegram-bot
+  labels:
+    project: telegram-bot
+    provider: nodeshift
+    version: 0.0.1
+data:
+  token: '782094890:AAGaMcJ8ljTkxfB0mRmzI1g3GRiJNKbSpv4'
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: telegram-bot-database-secret
+  labels:
+    project: telegram-bot
+    provider: nodeshift
+    version: 0.0.1
+data:
+  password: c2VjcmV0
+  user: bHVrZQ==
+type: Opaque
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: backend-database-secret
+  labels:
+    app: backend
+    group: com.yourcompany.newapp
+    provider: fabric8
+    version: 0.0.1
+data:
+  password: c2VjcmV0
+  user: bHVrZQ==
+type: Opaque
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  name: backend-database
+  labels:
+    app: backend-database
+    app.kubernetes.io/part-of: state-machine-app
+    app.openshift.io/runtime: postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-database
+      deployment: backend-database
+  template:
+    metadata:
+      labels:
+        app: backend-database
+        deployment: backend-database
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+    spec:
+      containers:
+        - name: backend-database
+          image: centos/postgresql-10-centos7
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRESQL_DATABASE
+              value: my_data
+            - name: POSTGRESQL_PASSWORD
+              value: secret
+            - name: POSTGRESQL_USER
+              value: luke
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+---
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  name: telegram-bot-database
+  labels:
+    app: telegram-bot-database
+    app.kubernetes.io/part-of: state-machine-app
+    app.openshift.io/runtime: postgresql
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telegram-bot-database
+      deployment: telegram-bot-database
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: telegram-bot-database
+        deployment: telegram-bot-database
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+    spec:
+      containers:
+        - name: telegram-bot-database
+          image: centos/postgresql-10-centos7
+          ports:
+            - containerPort: 5432
+              protocol: TCP
+          env:
+            - name: POSTGRESQL_DATABASE
+              value: my_data
+            - name: POSTGRESQL_PASSWORD
+              value: secret
+            - name: POSTGRESQL_USER
+              value: luke
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    prometheus.io/port: "9779"
+    prometheus.io/scrape: "true"
+  labels:
+    app: backend
+    expose: "true"
+    group: com.yourcompany.newapp
+    version: 0.0.1
+  name: backend
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: backend
+    group: com.yourcompany.newapp
+    provider: fabric8
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  labels:
+    app: backend-database
+  name: backend-database
+spec:
+  ports:
+  - name: 5432-tcp
+    port: 5432
+    protocol: TCP
+    targetPort: 5432
+  selector:
+    app: backend-database
+    deployment: backend-database
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    project: frontend
+    provider: nodeshift
+    version: 0.0.1
+  name: frontend
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    project: frontend
+    provider: nodeshift
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    project: telegram-bot
+    provider: nodeshift
+    version: 0.0.1
+  name: telegram-bot
+spec:
+  ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    project: telegram-bot
+    provider: nodeshift
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    openshift.io/generated-by: OpenShiftNewApp
+  labels:
+    app: telegram-bot-database
+  name: telegram-bot-database
+spec:
+  ports:
+  - name: 5432-tcp
+    port: 5432
+    protocol: TCP
+    targetPort: 5432
+  selector:
+    app: telegram-bot-database
+    deployment: telegram-bot-database
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: backend
+spec:
+  lookupPolicy:
+    local: false
+  tags:
+  - name: "latest"
+    from:
+      kind: DockerImage
+      name: quay.io/atarazana/sma-backend:0.0.1
+    referencePolicy:
+      type: Source
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: frontend
+spec:
+  lookupPolicy:
+    local: false
+  tags:
+  - name: "latest"
+    from:
+      kind: DockerImage
+      name: quay.io/atarazana/sma-frontend:0.0.1
+    referencePolicy:
+      type: Source
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: telegram-bot
+spec:
+  lookupPolicy:
+    local: false
+  tags:
+  - name: "latest"
+    from:
+      kind: DockerImage
+      name: quay.io/atarazana/sma-telegram-bot:0.0.1
+    referencePolicy:
+      type: Source
+---
+kind: DeploymentConfig
+apiVersion: apps.openshift.io/v1
+metadata:
+  annotations:
+    app.openshift.io/connects-to: backend
+    app.openshift.io/vcs-ref: master
+    app.openshift.io/vcs-uri: 'https://github.com/cvicens/state-machine-assistant.git'
+  name: frontend
+  labels:
+    app: frontend
+    app.kubernetes.io/part-of: state-machine-app
+    app.openshift.io/runtime: nodejs
+    project: frontend
+    provider: nodeshift
+    version: 0.0.1
+spec:
+  strategy:
+    type: Rolling
+    rollingParams:
+      updatePeriodSeconds: 1
+      intervalSeconds: 1
+      timeoutSeconds: 600
+      maxUnavailable: 25%
+      maxSurge: 25%
+    resources: {}
+    activeDeadlineSeconds: 21600
+  triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - frontend
+        from:
+          kind: ImageStreamTag
+          name: 'frontend:latest'
+  replicas: 1
+  revisionHistoryLimit: 2
+  test: false
+  selector:
+    app: frontend
+    project: frontend
+    provider: nodeshift
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: frontend
+        project: frontend
+        provider: nodeshift
+        version: 0.0.1
+      annotations:
+        nodeshift/git-branch: master
+        nodeshift/git-commit: d5baa58cd46e3b8a854cc6d9adc5cd403efd57d6
+    spec:
+      containers:
+        - resources: {}
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+              scheme: HTTP
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          name: frontend
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 1
+            periodSeconds: 30
+            successThreshold: 1
+            failureThreshold: 3
+          securityContext:
+            privileged: false
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          imagePullPolicy: Always
+          terminationMessagePolicy: File
+          image: quay.io/atarazana/sma-backend:0.0.1
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+---
+kind: DeploymentConfig
+apiVersion: apps.openshift.io/v1
+metadata:
+  annotations:
+    app.openshift.io/connects-to: telegram-bot-database
+    app.openshift.io/vcs-ref: master
+    app.openshift.io/vcs-uri: 'https://github.com/cvicens/state-machine-assistant.git'
+  name: telegram-bot
+  labels:
+    app: telegram-bot
+    app.kubernetes.io/part-of: state-machine-app
+    app.openshift.io/runtime: nodejs
+    project: telegram-bot
+    provider: nodeshift
+    version: 0.0.1
+spec:
+  strategy:
+    type: Rolling
+    rollingParams:
+      updatePeriodSeconds: 1
+      intervalSeconds: 1
+      timeoutSeconds: 600
+      maxUnavailable: 25%
+      maxSurge: 25%
+    resources: {}
+    activeDeadlineSeconds: 21600
+  triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - telegram-bot
+        from:
+          kind: ImageStreamTag
+          name: 'telegram-bot:latest'
+  replicas: 1
+  revisionHistoryLimit: 2
+  test: false
+  selector:
+    app: telegram-bot
+    project: telegram-bot
+    provider: nodeshift
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: telegram-bot
+        project: telegram-bot
+        provider: nodeshift
+        version: 0.0.1
+    spec:
+      containers:
+        - resources: {}
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+              scheme: HTTP
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          name: telegram-bot
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 60
+            timeoutSeconds: 1
+            periodSeconds: 30
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: DB_HOST
+              value: telegram-bot-database
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: telegram-bot-database-secret
+                  key: user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: telegram-bot-database-secret
+                  key: password
+            - name: TELEGRAM_TOKEN
+              valueFrom:
+                configMapKeyRef:
+                  name: telegram-bot
+                  key: token
+          securityContext:
+            privileged: false
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          imagePullPolicy: Always
+          terminationMessagePolicy: File
+          image: quay.io/atarazana/sma-telegram-bot:0.0.1
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+---
+kind: DeploymentConfig
+apiVersion: apps.openshift.io/v1
+metadata:
+  annotations:
+    app.openshift.io/connects-to: backend-database
+    app.openshift.io/vcs-ref: master
+    app.openshift.io/vcs-uri: 'https://github.com/cvicens/state-machine-assistant.git'
+  name: backend
+  labels:
+    app: backend
+    app.kubernetes.io/part-of: state-machine-app
+    app.openshift.io/runtime: spring-boot
+    group: com.yourcompany.newapp
+    provider: fabric8
+    version: 0.0.1
+spec:
+  strategy:
+    type: Rolling
+    rollingParams:
+      updatePeriodSeconds: 1
+      intervalSeconds: 1
+      timeoutSeconds: 3600
+      maxUnavailable: 25%
+      maxSurge: 25%
+    resources: {}
+    activeDeadlineSeconds: 21600
+  triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - spring-boot
+        from:
+          kind: ImageStreamTag
+          name: 'backend:latest'
+  replicas: 1
+  revisionHistoryLimit: 2
+  test: false
+  selector:
+    app: backend
+    group: com.yourcompany.newapp
+    provider: fabric8
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: backend
+        group: com.yourcompany.newapp
+        provider: fabric8
+        version: 0.0.1
+    spec:
+      containers:
+        - resources: {}
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 10
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          terminationMessagePath: /dev/termination-log
+          name: spring-boot
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 180
+            timeoutSeconds: 1
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 3
+          env:
+            - name: CLUSTER_NAME
+              value: sma-cluster
+            - name: DB_HOST
+              value: backend-database
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: backend-database-secret
+                  key: user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backend-database-secret
+                  key: password
+            - name: JAVA_OPTIONS
+              value: '-Dspring.profiles.active=openshift'
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+          securityContext:
+            privileged: false
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: prometheus
+              containerPort: 9779
+              protocol: TCP
+            - name: jolokia
+              containerPort: 8778
+              protocol: TCP
+          imagePullPolicy: IfNotPresent
+          terminationMessagePolicy: File
+          image: 'backend:latest'
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: frontend
+  labels:
+    project: frontend
+    provider: nodeshift
+    version: 0.0.1
+spec:
+  to:
+    kind: Service
+    name: frontend
+    weight: 100
+  port:
+    targetPort: 8080
+  wildcardPolicy: None
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: telegram-bot
+  labels:
+    project: telegram-bot
+    provider: nodeshift
+    version: 0.0.1
+spec:
+  to:
+    kind: Service
+    name: telegram-bot
+    weight: 100
+  port:
+    targetPort: 8080
+  wildcardPolicy: None
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: backend
+  labels:
+    app: backend
+    expose: 'true'
+    group: com.yourcompany.newapp
+    provider: fabric8
+    version: 0.0.1
+spec:
+  to:
+    kind: Service
+    name: backend
+    weight: 100
+  port:
+    targetPort: 8080
+  wildcardPolicy: None
+
+
