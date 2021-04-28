@@ -69,6 +69,7 @@ spec:
     retention.ms: 604800000
     segment.bytes: 1073741824
 ---
+apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: kafka-monitor
