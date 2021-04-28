@@ -68,7 +68,8 @@ metadata:
     strimzi.io/cluster: "sma-cluster"
 spec:
   partitions: 3
-  replicas: 3
+  # replicas: 3 /// weird behavior entity controller recreates!
+  replicas: 1
   config:
     retention.ms: 604800000
     segment.bytes: 1073741824
@@ -84,7 +85,8 @@ metadata:
     strimzi.io/cluster: "sma-cluster"
 spec:
   partitions: 3
-  replicas: 3
+  # replicas: 3 /// weird behavior entity controller recreates!
+  replicas: 1
   config:
     retention.ms: 604800000
     segment.bytes: 1073741824
