@@ -16,7 +16,8 @@ spec:
         port: 9093
         type: internal
         tls: true
-      - port: 9094
+      - name: route
+        port: 9094
         tls: true
         type: route
     # listeners:
