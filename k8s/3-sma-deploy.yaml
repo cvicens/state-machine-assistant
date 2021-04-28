@@ -376,7 +376,8 @@ spec:
               protocol: TCP
           imagePullPolicy: Always
           terminationMessagePolicy: File
-          image: quay.io/atarazana/sma-backend:0.0.1
+          #image: 'frontend:latest'
+          image: quay.io/atarazana/sma-frontend@sha256:0cfd09f568a942cfb03c8881bdfdee3770fc11d5ef2ce4c398c45007b4b26cde
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
@@ -484,7 +485,8 @@ spec:
               protocol: TCP
           imagePullPolicy: Always
           terminationMessagePolicy: File
-          image: quay.io/atarazana/sma-telegram-bot:0.0.1
+          #image: 'telegram-bot:latest'
+          image: quay.io/atarazana/sma-telegram-bot@sha256:c9503ccc9cd048dabb2e1c29e4f57940772d47d2bc4dcfaa33432026ed608f68
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
@@ -603,7 +605,8 @@ spec:
               protocol: TCP
           imagePullPolicy: IfNotPresent
           terminationMessagePolicy: File
-          image: 'backend:latest'
+          #image: 'backend:latest'
+          image: quay.io/atarazana/sma-backend@sha256:d8db38db6f860b9460342ac25a670d7f72a2d79a074bf45c6ccff45271bcc133
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       dnsPolicy: ClusterFirst
