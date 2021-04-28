@@ -8,10 +8,22 @@ spec:
     version: 2.7.0
     replicas: 3
     listeners:
-      plain: {}
-      tls: {}
-      external:
-       type: route
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+      - name: tls
+        port: 9093
+        type: internal
+        tls: true
+      - port: 9094
+        tls: true
+        type: route
+    # listeners:
+    #   plain: {}
+    #   tls: {}
+    #   external:
+    #    type: route
     config:
       offsets.topic.replication.factor: 3
       transaction.state.log.replication.factor: 3
