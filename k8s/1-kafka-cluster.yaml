@@ -48,7 +48,7 @@ kind: KafkaTopic
 metadata:
   name: hl7-events-topic
   annotations:
-    argocd.argoproj.io/compare-options: IgnoreExtraneous
+    #argocd.argoproj.io/compare-options: IgnoreExtraneous
     argocd.argoproj.io/sync-options: Replace=true
   labels:
     strimzi.io/cluster: "sma-cluster"
@@ -64,7 +64,7 @@ kind: KafkaTopic
 metadata:
   name: events-topic
   annotations:
-    argocd.argoproj.io/compare-options: IgnoreExtraneous
+    #argocd.argoproj.io/compare-options: IgnoreExtraneous
     argocd.argoproj.io/sync-options: Replace=true
   labels:
     strimzi.io/cluster: "sma-cluster"
