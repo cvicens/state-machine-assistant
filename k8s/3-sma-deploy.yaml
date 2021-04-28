@@ -294,7 +294,7 @@ kind: DeploymentConfig
 apiVersion: apps.openshift.io/v1
 metadata:
   annotations:
-    app.openshift.io/connects-to: backend
+    app.openshift.io/connects-to: '["backend",{"apiVersion":"apps.openshift.io/v1","kind":"DeploymentConfig","name":"backend"}]'
     app.openshift.io/vcs-ref: master
     app.openshift.io/vcs-uri: 'https://github.com/cvicens/state-machine-assistant.git'
   name: frontend
@@ -387,7 +387,7 @@ kind: DeploymentConfig
 apiVersion: apps.openshift.io/v1
 metadata:
   annotations:
-    app.openshift.io/connects-to: telegram-bot-database
+    app.openshift.io/connects-to: '["telegram-bot-database",{"apiVersion":"apps/v1","kind":"Deployment","name":"telegram-bot-database"}]'
     app.openshift.io/vcs-ref: master
     app.openshift.io/vcs-uri: 'https://github.com/cvicens/state-machine-assistant.git'
   name: telegram-bot
@@ -495,7 +495,7 @@ kind: DeploymentConfig
 apiVersion: apps.openshift.io/v1
 metadata:
   annotations:
-    app.openshift.io/connects-to: backend-database
+    app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"Deployment","name":"backend-database"}]'
     app.openshift.io/vcs-ref: master
     app.openshift.io/vcs-uri: 'https://github.com/cvicens/state-machine-assistant.git'
   name: backend
