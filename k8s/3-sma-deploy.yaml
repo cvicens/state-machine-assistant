@@ -8,7 +8,18 @@ metadata:
     provider: nodeshift
     version: 0.0.1
 data:
-  token: '782094890:AAGaMcJ8ljTkxfB0mRmzI1g3GRiJNKbSpv4'
+  token: ''
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: telegram-bot
+  labels:
+    project: telegram-bot
+    provider: nodeshift
+    version: 0.0.1
+data:
+  token: NzgyMDk0ODkwOkFBRlNkZVBsUy1uUXl3Rnp0eXItWWFIRnU3bkRnUFlmeEY4Cg==
 ---
 kind: Secret
 apiVersion: v1
@@ -474,7 +485,7 @@ spec:
                   key: password
             - name: TELEGRAM_TOKEN
               valueFrom:
-                configMapKeyRef:
+                secretKeyRef:
                   name: telegram-bot
                   key: token
           securityContext:
