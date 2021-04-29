@@ -19,7 +19,7 @@ metadata:
     provider: nodeshift
     version: 0.0.1
 data:
-  token: MTc5Njk4MTE0MTpBQUd1OU1GY3JjRlVGbFp3ZTNkdFkyM29wVEZVSXVHd29QWQo=
+  token: MTc5Njk4MTE0MTpBQUd1OU1GY3JjRlVGbFp3ZTNkdFkyM29wVEZVSXVHd29QWQ==
 ---
 kind: Secret
 apiVersion: v1
