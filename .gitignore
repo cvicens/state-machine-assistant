@@ -3,3 +3,6 @@ amq-streams-*-ocp-install-examples
 .DS_Store
 .vscode/
 kamel
+
+*.old
+old/
