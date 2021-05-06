@@ -89,17 +89,3 @@ spec:
   config:
     retention.ms: 604800000
     segment.bytes: 1073741824
----
-apiVersion: monitoring.coreos.com/v1
-kind: ServiceMonitor
-metadata:
-  name: kafka-monitor
-  labels:
-    k8s-app: kafka-monitor
-spec:
-  endpoints:
-    - interval: 30s
-      port: tcp-prometheus
-  selector:
-    matchLabels:
-      strimzi.io/kind: Kafka
