@@ -10,8 +10,7 @@ components:
   - id: redhat/java/latest
     memoryLimit: 2048Mi
     type: chePlugin
-  - id: che-incubator/typescript/latest
-    memoryLimit: 512Mi
+  - id: redhat/dependency-analytics/latest
     type: chePlugin
   - mountSources: true
     endpoints:
