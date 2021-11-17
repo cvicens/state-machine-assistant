@@ -5,7 +5,7 @@
 
 cd backend/
 
-export KAFKA_SERVICE_HOST=$(oc -n ${PROJECT_NAME} get routes ${CLUSTER_NAME}-kafka-bootstrap -o=jsonpath='{.status.ingress[0].host}{"\n"}')
+export KAFKA_SERVICE_HOST=$(oc -n ${PROJECT_NAME} get routes ${CLUSTER_NAME}-kafka-route-bootstrap -o=jsonpath='{.status.ingress[0].host}{"\n"}')
 
 echo "KAFKA_SERVICE_HOST=${KAFKA_SERVICE_HOST}"
 
