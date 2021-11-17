@@ -12,7 +12,7 @@ else
       WORK_USER=${CHE_WORKSPACE_NAMESPACE}
 fi
 
-export KAFKA_VERSION=2.7.0
+export KAFKA_VERSION=2.8.0
 
 export PROJECT_NAME="${WORK_USER}-sma"
 export CLUSTER_NAME="sma-cluster"
