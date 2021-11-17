@@ -45,6 +45,6 @@ commands:
       - command: >-
           oc login $(oc whoami --show-server) --username=${CHE_WORKSPACE_NAMESPACE} --password=openshift --insecure-skip-tls-verify
         type: exec
-        workdir: /projects/workshop
+        workdir: /projects/state-machine-assistant
         component: workshop-tools
 apiVersion: 1.0.0
