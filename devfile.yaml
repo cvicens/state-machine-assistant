@@ -5,7 +5,7 @@ projects:
     source:
       location: 'https://github.com/cvicens/state-machine-assistant.git'
       type: git
-      branch: ocp-4.8
+      branch: master
 components:
   - id: redhat/java/latest
     memoryLimit: 2048Mi
