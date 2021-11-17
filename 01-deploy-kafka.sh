@@ -25,15 +25,24 @@ spec:
     version: ${KAFKA_VERSION}
     replicas: 3
     listeners:
-      plain: {}
-      tls: {}
-      external:
-       type: route
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+      - name: tls
+        port: 9093
+        type: internal
+        tls: true
+      - name: route
+        port: 9094
+        type: route
+        tls: true
     config:
       offsets.topic.replication.factor: 3
       transaction.state.log.replication.factor: 3
       transaction.state.log.min.isr: 2
-      log.message.format.version: '2.3'
+      log.message.format.version: '2.8'
+      inter.broker.protocol.version: '2.8'
     storage:
       type: ephemeral
   kafkaExporter:
@@ -59,7 +68,6 @@ spec:
   entityOperator:
     topicOperator: {}
     userOperator: {}
-
 EOF
 
 cat << EOF | oc -n ${PROJECT_NAME} create -f -
