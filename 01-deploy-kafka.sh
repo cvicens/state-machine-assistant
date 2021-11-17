@@ -16,7 +16,7 @@
 oc new-project ${PROJECT_NAME}
 
 cat << EOF | oc create -n ${PROJECT_NAME} -f -
-apiVersion: kafka.strimzi.io/v1beta1
+apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
 metadata:
   name: ${CLUSTER_NAME}
