@@ -923,7 +923,7 @@ Let's set the environment properly...
 > ![IMPORTANT](images/important-icon.png) **IMPORTANT CRW**: Do you remember the URL exposing the `backend` api? If you don't look for `IMPORTANT CRW`. Well we need to point the UI to the `backend` API running in CRW so do the following only that changing the ugly text by the proper URL *without the ending back slash*.
 
 ```
-export GW_ENDPOINT=<PASTE THE BACKEND URL HERE>
+export GW_ENDPOINT=https://$(oc get route -n ${CHE_WORKSPACE_NAMESPACE}-codeready | grep 8080 | awk '{ print $2 }')
 export HIS_FRONTEND_CUSTOM_PORT=8090
 ```
 
