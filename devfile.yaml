@@ -27,7 +27,7 @@ components:
     volumes:
       - name: m2
         containerPath: /home/user/.m2
-    alias: tools
+    alias: workshop-tools
     image: 'quay.io/cvicensa/cnw-che-stack:7.19.2'
     env:
       - value: >-
@@ -39,4 +39,12 @@ components:
         name: JAVA_OPTS
       - value: $(JAVA_OPTS)
         name: MAVEN_OPTS
+commands:
+  - name: 'OpenShift - Login'
+    actions:
+      - command: >-
+          oc login $(oc whoami --show-server) --username=${CHE_WORKSPACE_NAMESPACE} --password=openshift --insecure-skip-tls-verify
+        type: exec
+        workdir: /projects/workshop
+        component: workshop-tools
 apiVersion: 1.0.0
