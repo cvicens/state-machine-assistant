@@ -179,6 +179,10 @@ We have prepared a set of numbered shell scripts, please have a look to the one 
 
     ```sh
     $ oc get pod -n $PROJECT_NAME -w
+    ```
+    Expected result:
+
+    ```sh
     sma-cluster-entity-operator-55d6f79ccf-dckht   3/3     Running     16         5d15h
     sma-cluster-kafka-0                            2/2     Running     11         5d15h
     sma-cluster-kafka-1                            2/2     Running     11         5d15h
@@ -193,7 +197,12 @@ We have prepared a set of numbered shell scripts, please have a look to the one 
     Another test you can run, this one to check if our topics were created properly.
 
     ```sh
-    $ oc rsh -n $PROJECT_NAME sma-cluster-kafka-0 bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+    oc rsh -n $PROJECT_NAME sma-cluster-kafka-0 bin/kafka-topics.sh --list --bootstrap-server localhost:9092
+    ```
+
+    Expected output:
+
+    ```sh
     Defaulting container name to kafka.
     Use 'oc describe pod/sma-cluster-kafka-0 -n state-machine-assistant' to see all of the containers in this pod.
     OpenJDK 64-Bit Server VM warning: If the number of processors is expected to increase from one, then you should configure the number of parallel GC threads appropriately using -XX:ParallelGCThreads=N
@@ -245,7 +254,12 @@ Now run the script.
 Check the status of the deployment with this command. Eventually you should see something like this where the status of our database pods is `Running`, like `backend-database-1-ttq2b` in this example output.
 
 ```sh
-$ oc get pod -n $PROJECT_NAME -w
+oc get pod -n $PROJECT_NAME -w
+```
+
+This is the expected output:
+
+```sh
 backend-database-1-deploy                                0/1     Completed   0          5m
 backend-database-1-ttq2b                                 1/1     Running     4          4m
 telegram-bot-database-1-7qv4d                            1/1     Running     4          4m
@@ -403,7 +417,12 @@ Time to paste this token, open `./05a-run-telegram-bot.sh` and paste it when req
 > Run this script in an new terminal window. Be aware that it will use `oc port-forward` to open a tunnel with the database running in OpenShift. By the way this script could also work properly completely local if you uncomment the required lines `Using docker to run a database`.
 
 ```sh
-$ ./05a-run-telegram-bot.sh 
+./05a-run-telegram-bot.sh 
+```
+
+Expected output:
+
+```sh
 PASTE TOKEN: YOUR_TOKEN
 USING TOKEN YOUR_TOKEN
 > telegram-bot@1.0.0 start /Users/cvicensa/Projects/openshift/tap/state-machine-assistant/telegram-bot
@@ -481,7 +500,12 @@ Now please run this command and provide the Telegram Token you obtained before.
 > ![INFO](images/info-icon.png) **INFO**: If you happen to forget the token, you can always go to BotFater and ask him ;-) with `/mybots`
 
 ```sh
-$ ./05b-deploy-telegram-bot.sh
+./05b-deploy-telegram-bot.sh
+```
+
+Expected output:
+
+```sh
 PASTE TOKEN: /R_TOKEN
 USING TOKEN YOUR_TOKEN 
 > telegram-bot@1.0.0 openshift /Users/cvicensa/Projects/openshift/tap/state-machine-assistant/telegram-bot
@@ -519,7 +543,6 @@ USING TOKEN YOUR_TOKEN
 2020-01-15T11:04:19.857Z INFO creating deployment configuration telegram-bot
 2020-01-15T11:04:19.999Z INFO route host mapping telegram-bot-state-machine-assistant.apps.cluster-kharon-be2a.kharon-be2a.example.opentlc.com
 2020-01-15T11:04:20.003Z INFO complete
-
 ```
 
 ### HIS Backend
@@ -627,7 +650,12 @@ If it all works properly you should get something like this:
 Let's run some tests, for instance let's get all the patients in the dabase. Let's remember that when run locally, `default` profile is used and H2 is the database, not PostgreSQL. Please run this command from a different terminal.
 
 ```sh
-$ curl http://localhost:8080/api/patients
+curl http://localhost:8080/api/patients
+```
+
+Expect this output:
+
+```sh
 [{"patientId":1,"personalId":"0123456789Z","firstName":"JOHN","lastName":"SMITH","stage":"idle"},{"patientId":2,"personalId":"9876543210W","firstName":"PETER","lastName":"JONES","stage":"idle"}]
 ```
 
@@ -751,13 +779,13 @@ Let's run our integrations in two different (additional) terminal windows:
 So, please in a different terminal run:
 
 ```sh
-$ ./07a-run-integration.sh
+./07a-run-integration.sh
 ```
 
 And yet in another terminal window, run:
 
 ```sh
-$ ./07b-run-integration.sh
+./07b-run-integration.sh
 ```
 
 > ![NOTE](images/note-icon.png) **NOTE**: you have to wait until the integrations are up and running! During the building phase you will see traces like the next ones, wait until you see `Integration "XYZ" in phase Running`:
@@ -834,7 +862,11 @@ Run the following script and you'll have the Angular App running in development 
 
 ```sh
 ./08-run-frontend.sh 
+```
 
+You should see something like this:
+
+```sh
 > frontend@0.0.0 dev /Users/cvicensa/Projects/openshift/tap/state-machine-assistant/frontend
 > npx concurrently --kill-others "npm run client" "npm run server"
 
@@ -981,7 +1013,7 @@ If previously we have two script to run the integrations HL7 to Events and Event
 > This is the relevant piece in our script:
 
 ```sh
-/kamel run --configmap=hl7-to-events \
+./kamel run --configmap=hl7-to-events \
   -d camel-gson -d mvn:ca.uhn.hapi:hapi-base:2.3 -d mvn:ca.uhn.hapi:hapi-structures-v24:2.3 \
   ./integrations/HL7ToEvents.java
 
@@ -993,6 +1025,11 @@ Now please run the script, your should receive an output like this:
 
 ```sh
 ./10-deploy-integration.sh 
+```
+
+Expected result:
+
+```sh
 integration "hl7to-events" created
 integration "events-to-telegram-bot" created
 ```
