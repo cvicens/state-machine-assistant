@@ -30,7 +30,7 @@
     "nodeshift": "~3.0.0"
   },
   "dependencies": {
-    "express": "^4.16.4",
+    "express": "^4.17.3",
     "node-telegram-bot-api": "^0.30.0",
     "pg": "^7.11.0"
   }
